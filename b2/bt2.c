@@ -10,7 +10,7 @@
 
 // O_RDWR lenh read + write
 // O_CREAT mo 1 file neu ko ton tai thi tao file
-// O_TRUNC ghi de
+// O_TRUNC ghi lai file khi open
 
 #define __USE_XOPEN
 
