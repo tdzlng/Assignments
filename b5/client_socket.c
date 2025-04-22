@@ -8,9 +8,10 @@
 #include <string.h>
 
 // preprocessor directives
-#if defined(D_IPV4_STREAM) && defined(D_IPV4_DATAGRAM) && defined(D_UNIX_STREAM) && defined(D_UNIX_DATAGRAM)
+#if defined(D_IPV4_STREAM) || defined(D_IPV4_DATAGRAM) || defined(D_UNIX_STREAM) || defined(D_UNIX_DATAGRAM)
 // Do nothing
 #else
+// Defualt mode
 #define D_IPV4_DATAGRAM
 #endif
 

@@ -8,9 +8,10 @@
 #include <string.h>
 
 // preprocessor directives
-#if defined(D_IPV4_STREAM) && defined(D_IPV4_DATAGRAM) && defined(D_UNIX_STREAM) && defined(D_UNIX_DATAGRAM)
+#if defined(D_IPV4_STREAM) || defined(D_IPV4_DATAGRAM) || defined(D_UNIX_STREAM) || defined(D_UNIX_DATAGRAM)
 // Do nothing
 #else
+// Defualt mode
 #define D_IPV4_DATAGRAM
 #endif
 
@@ -75,6 +76,7 @@ void deinit_server(){
 void server(){
     char testData[] = "Return to client";
     size_t msgLength;
+    socklen_t sockLength;
     memset(bufferSend, 0, D_BUFF_SIZE);
     memset(bufferRev, 0, D_BUFF_SIZE);
 
@@ -103,7 +105,7 @@ void server(){
 
 #ifdef D_IPV4_DATAGRAM
     // read from client and client's address
-    if (D_ERROR == recvfrom(server_fd, bufferRev, D_BUFF_SIZE, 0, (struct sockaddr*)(&new_socket_fd), NULL)) {
+    if (D_ERROR == recvfrom(server_fd, bufferRev, D_BUFF_SIZE, 0, (struct sockaddr*)(&new_socket_fd), &sockLength)) {
         M_HANDLE_ERROR("Error recvfrom()\n");
     }
 
@@ -113,7 +115,7 @@ void server(){
     // send data to client
     msgLength = strlen(testData);
     memcpy(bufferSend, testData, msgLength);
-    if ( msgLength != sendto(server_fd, bufferSend, msgLength, 0, (const struct sockaddr*)(&server_addr), sizeof server_addr)) {
+    if ( msgLength != sendto(server_fd, bufferSend, msgLength, 0, (const struct sockaddr*)(&new_socket_fd), new_socket_fd)) {
         M_HANDLE_ERROR("Error sendto()\n");
     }
 #endif
