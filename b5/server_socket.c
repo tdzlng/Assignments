@@ -26,7 +26,7 @@
 #define M_HANDLE_ERROR(msg) \
     { perror(msg); exit(EXIT_FAILURE);}
 #define M_LOG(msg) \
-    { printf("Log message: %s\n",msg);}
+    { printf("Server Log: %s\n",msg);}
 
 
 // static globlal variable
@@ -42,7 +42,13 @@ static char bufferRev[D_BUFF_SIZE];
 void init_server(){
 
     // init socket
-    if(D_ERROR == socket(AF_INET, SOCK_STREAM, 0)){
+#ifdef D_IPV4_STREAM
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+#endif
+#ifdef D_IPV4_DATAGRAM
+    server_fd = socket(AF_INET, SOCK_DGRAM, 0);
+#endif
+    if(D_ERROR == server_fd){
         M_HANDLE_ERROR("Error socket()\n");
     }
 
@@ -74,7 +80,7 @@ void deinit_server(){
 }
 
 void server(){
-    char testData[] = "Return to client";
+    char testData[] = "Return to client ";
     size_t msgLength;
     socklen_t sockLength;
     memset(bufferSend, 0, D_BUFF_SIZE);
@@ -82,7 +88,7 @@ void server(){
 
 #ifdef D_IPV4_STREAM
     // block until client is connect
-    new_socket_fd = accept(server_fd, (struct sockaddr*)(&server_addr), (socklen_t*)(&msgLength));
+    new_socket_fd = accept(server_fd, (struct sockaddr*)(&server_addr), &sockLength);
     if(D_ERROR == new_socket_fd) {
         M_HANDLE_ERROR("Error accept()\n");
     }
@@ -95,9 +101,10 @@ void server(){
     M_LOG(bufferRev);
 
     // feedback to client
+    memcpy(bufferSend, testData, strlen(testData));
     msgLength = strlen(bufferRev);
-    memcpy(bufferSend, bufferRev, msgLength);
-    if(D_ERROR == write(new_socket_fd, bufferSend, msgLength)) {
+    memcpy(bufferSend + strlen(testData), bufferRev, msgLength);
+    if(D_ERROR == write(new_socket_fd, bufferSend, msgLength + strlen(testData))) {
         M_HANDLE_ERROR("Error write()\n");
     }
     close(new_socket_fd);
@@ -105,7 +112,7 @@ void server(){
 
 #ifdef D_IPV4_DATAGRAM
     // read from client and client's address
-    if (D_ERROR == recvfrom(server_fd, bufferRev, D_BUFF_SIZE, 0, (struct sockaddr*)(&new_socket_fd), &sockLength)) {
+    if (D_ERROR == recvfrom(server_fd, bufferRev, D_BUFF_SIZE, 0, (struct sockaddr*)(&client_addr), &sockLength)) {
         M_HANDLE_ERROR("Error recvfrom()\n");
     }
 
@@ -115,7 +122,7 @@ void server(){
     // send data to client
     msgLength = strlen(testData);
     memcpy(bufferSend, testData, msgLength);
-    if ( msgLength != sendto(server_fd, bufferSend, msgLength, 0, (const struct sockaddr*)(&new_socket_fd), new_socket_fd)) {
+    if ( msgLength != sendto(server_fd, bufferSend, msgLength, 0, (const struct sockaddr*)(&client_addr), sockLength)) {
         M_HANDLE_ERROR("Error sendto()\n");
     }
 #endif

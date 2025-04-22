@@ -25,7 +25,7 @@
 #define M_HANDLE_ERROR(msg) \
     { perror(msg); exit(EXIT_FAILURE);}
 #define M_LOG(msg) \
-    { printf("Log message: %s\n",msg);}
+    { printf("Client Log: %s\n",msg);}
 
 // static globlal variable
 static int client_fd;
@@ -92,7 +92,7 @@ void client(){
 #ifdef D_IPV4_DATAGRAM
     // received from server
     // note: client co the biet thang nao gui qua recvfrom
-    if ( D_ERROR != recvfrom(client_fd, bufferRev, D_BUFF_SIZE, 0, NULL, NULL)) {
+    if ( D_ERROR == recvfrom(client_fd, bufferRev, D_BUFF_SIZE, 0, NULL, NULL)) {
         M_HANDLE_ERROR("Error recvfrom()\n");
     }
 #endif
