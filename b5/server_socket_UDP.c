@@ -17,7 +17,7 @@
 #endif
 
 // define constant
-#define D_PATH          "./Server_Socket"
+#define D_PATH          "./Socket_server"
 #define D_BUFF_SIZE     (256U)
 #define D_ERROR         (-1)
 #define D_BACK_LOG      (3)
@@ -58,7 +58,6 @@ void init_server(){
     }
 
     // init server path
-    remove(D_PATH);
     server_addr.sun_family = AF_UNIX;
     memcpy(server_addr.sun_path, path, strlen(path));
 
@@ -66,7 +65,7 @@ void init_server(){
     // if(D_ERROR == setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof opt)) {
     //     M_HANDLE_ERROR("Error setsockopt()\n");
     // }
-
+    
     // bind address with server
     if ( D_ERROR == bind(server_fd, (const struct sockaddr*)(&server_addr), sizeof server_addr) ){
         M_HANDLE_ERROR("Error bind()\n");
@@ -120,7 +119,6 @@ void server(){
     if (D_ERROR == recvfrom(server_fd, bufferRev, D_BUFF_SIZE, 0, (struct sockaddr*)(&client_addr), &sockLength)) {
         M_HANDLE_ERROR("Error recvfrom()\n");
     }
-
     M_LOG("data received!: ");
     M_LOG(bufferRev);
 

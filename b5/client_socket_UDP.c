@@ -17,7 +17,11 @@
 #endif
 
 // define constant
-#define D_PATH          "./Server_Socket"
+#define D_PATH_SERVER          "./Socket_server"
+#ifdef D_UNIX_DATAGRAM
+#define D_PATH_CLIENT          "./Socket_client"
+#endif
+
 #define D_BUFF_SIZE     (256U)
 #define D_ERROR         (-1)
 
@@ -30,17 +34,21 @@
 // static globlal variable
 static int client_fd;
 static struct sockaddr_un serv_addr = { 0 };
+static struct sockaddr_un client_addr = { 0 };
 static char bufferSend[D_BUFF_SIZE];
 static char bufferRev[D_BUFF_SIZE];
 
 // function definition
 void init_client(){
     int optval;
-    char path[] = D_PATH;
+    char path[] = D_PATH_SERVER;
 
     if ((strlen(path)) > sizeof(serv_addr.sun_path)) {
         M_HANDLE_ERROR("Path longer than 108 charactor\n");
     }
+    client_addr.sun_family = AF_UNIX;
+    char path2[] = D_PATH_CLIENT;
+    memcpy(serv_addr.sun_path, path, strlen(path));
 
     // init socket
 #ifdef D_UNIX_STREAM
@@ -72,7 +80,8 @@ void init_client(){
 }
 
 void deinit_client(){
-    remove(D_PATH);
+    remove(D_PATH_SERVER);
+    remove(D_PATH_CLIENT);
 }
 
 void client(){
