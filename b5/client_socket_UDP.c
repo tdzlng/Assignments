@@ -46,8 +46,8 @@ void init_client(){
     if ((strlen(path)) > sizeof(serv_addr.sun_path)) {
         M_HANDLE_ERROR("Path longer than 108 charactor\n");
     }
-    client_addr.sun_family = AF_UNIX;
-    char path2[] = D_PATH_CLIENT;
+    // init path
+    serv_addr.sun_family = AF_UNIX;
     memcpy(serv_addr.sun_path, path, strlen(path));
 
     // init socket
@@ -61,9 +61,7 @@ void init_client(){
         M_HANDLE_ERROR("Error Socket()\n");
     }
 
-    // init path
-    serv_addr.sun_family = AF_UNIX;
-    memcpy(serv_addr.sun_path, path, strlen(path));
+
 
 #ifdef D_UNIX_STREAM
     // setup conection to server

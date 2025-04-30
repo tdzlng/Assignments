@@ -84,7 +84,7 @@ void deinit_server(){
 }
 
 void server(){
-    char testData[] = "Return to client ";
+    char testData[] = "Return to client 1";
     size_t msgLength;
     socklen_t sockLength;
     memset(bufferSend, 0, D_BUFF_SIZE);
@@ -121,6 +121,7 @@ void server(){
     }
     M_LOG("data received!: ");
     M_LOG(bufferRev);
+    printf("%s\n",client_addr.sun_path);
 
     // send data to client
     msgLength = strlen(testData);
