@@ -185,7 +185,7 @@ int queue_getAddr(queue_t* container, int fd, char** ip, int *port){
     } else {
         tmp = container->tail;
 
-        /* Search list by ip */
+        /* Search list by fd */
         while((NULL != tmp) && (flag == 0)){
             if (tmp->guest.socketFd == fd) {
                 flag = 1;
@@ -199,4 +199,8 @@ int queue_getAddr(queue_t* container, int fd, char** ip, int *port){
     *port = tmp->guest.port;
     *ip = tmp->guest.ip;
     return flag;
+}
+
+void queue_getDataPeer(char** ip, int* port){
+
 }

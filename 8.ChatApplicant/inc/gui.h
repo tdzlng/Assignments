@@ -10,7 +10,6 @@ typedef enum {
 } E_ERROR_GUI_CODE;
 
 typedef struct {
-    int id;
     int port;
     int valid;
     char ip[16];

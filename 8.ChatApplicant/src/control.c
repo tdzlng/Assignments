@@ -88,6 +88,14 @@ void ctrl_getInput(){
     sscanf("%s %s %s", parser.command, parser.arg1, parser.arg2);
 }
 
+void ctrl_initHost(int port){
+    ts_initHost(port);
+}
+
+void ctrl_deinitHost(){
+    ts_deinitHost();
+}
+
 static void s_help(){
     gui_drawCMD();
 }
