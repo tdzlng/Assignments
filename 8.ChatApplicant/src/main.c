@@ -33,7 +33,6 @@ void main(int argc, char* argv[]){
                 ctrl_bfTsk();
                 ctrl_getInput();
                 ctrl_control();
-                ctrl_getDisplay();
                 ctrl_afTsk();
 
                 usleep(10); /* process all task in 10ms */

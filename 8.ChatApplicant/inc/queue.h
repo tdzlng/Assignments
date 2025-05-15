@@ -6,14 +6,14 @@ typedef struct {
     char ip[16]; 
 } data_t;
 
-typedef struct list{
+typedef struct node{
     data_t guest;
-    struct list* next;
-} list_t;
+    struct node* next;
+} node_t;
 
 typedef struct {
-    list_t* head;
-    list_t* tail;
+    node_t* head;
+    node_t* tail;
 } queue_t;
 
 void queue_initQueue(queue_t* container);

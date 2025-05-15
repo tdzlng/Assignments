@@ -11,8 +11,8 @@ void queue_initQueue(queue_t* container){
     container->tail = NULL;
 }
 
-static list_t* s_createNode(int socketFd, uint16_t port, char* ip) {
-    list_t* node = (list_t*)malloc(sizeof(list_t));
+static node_t* s_createNode(int socketFd, uint16_t port, char* ip) {
+    node_t* node = (node_t*)malloc(sizeof(node_t));
 
     node->next = NULL;
     node->guest.socketFd = socketFd;
@@ -36,7 +36,7 @@ static int s_checkEmptyQueue(queue_t* container){
 }
 
 void queue_enqueue(queue_t* container, int socketFd, uint16_t port, char* ip) {
-    list_t* node = s_createNode(socketFd, port, ip);
+    node_t* node = s_createNode(socketFd, port, ip);
     int isQueueEmpty = s_checkEmptyQueue(container);
 
     if (isQueueEmpty) {
@@ -49,32 +49,17 @@ void queue_enqueue(queue_t* container, int socketFd, uint16_t port, char* ip) {
     }
 }
 
-// void dequeue(queue* container, int id) { // id = 0,1,2,3
-//     list* deleteNode = NULL;
-//     list* preNode = NULL;
-//     int isQueueEmpty; 
+void queue_destroy(queue_t* container) {
+    node_t*
+    while (condition)
+    {
+        /* code */
+    }
+    
+}
 
-//     isQueueEmpty = s_checkEmptyQueue(container);
-//     if (isQueueEmpty) {
-
-//     } else {
-//         deleteNode = container->tail;
-//         for(int i=0; i<id;++i){
-//             preNode = deleteNode;
-//             deleteNode = deleteNode->next;
-//         }
-
-//         /* if not 1st tail node */
-//         if(NULL != preNode){
-//             preNode->next = deleteNode->next;
-//         }
-        
-//         free(deleteNode);
-//     }
-// }
-
-static int s_getNode(queue_t* container, char* ip, int port, list_t* node){
-    list_t* tmp = NULL;
+static int s_getNode(queue_t* container, char* ip, int port, node_t* node){
+    node_t* tmp = NULL;
     int isQueueEmpty;
     int flag;           /* if find the right ip flag = 1 */
 
@@ -102,7 +87,7 @@ static int s_getNode(queue_t* container, char* ip, int port, list_t* node){
 
 int queue_getSocketFd(queue_t* container, char *ip, int port){
     int flag;
-    list_t node;
+    node_t node;
     int ret;
 
     flag = s_getNode(container, ip, port, &node);
@@ -119,7 +104,7 @@ int queue_getSocketFd(queue_t* container, char *ip, int port){
 int queue_getArrSocketFd(queue_t* container, int* arr, int num){
     int i=0;
     int isQueueEmpty;
-    list_t* tmp = NULL;
+    node_t* tmp = NULL;
     int ret;            /* if suceesfull return the number of socketFD else return -1 */
 
     ret = 0;
@@ -144,8 +129,8 @@ int queue_getArrSocketFd(queue_t* container, int* arr, int num){
 }
 
 int queue_deletePeerSocket(queue_t* container, int socket){
-    list_t* deleteNode = NULL;
-    list_t* preNode = NULL;
+    node_t* deleteNode = NULL;
+    node_t* preNode = NULL;
     int isQueueEmpty;
     int flag;                       /* flag = -1 empty queue, 0 not found, 1 found */
 
@@ -185,7 +170,7 @@ int queue_deletePeerSocket(queue_t* container, int socket){
 }
 
 int queue_getAddr(queue_t* container, int fd, char** ip, int *port){
-    list_t* tmp = NULL;
+    node_t* tmp = NULL;
     int isQueueEmpty;
     int flag;           /* if find the right socket, flag = 1 */
 
