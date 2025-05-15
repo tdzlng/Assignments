@@ -6,7 +6,7 @@
 #include "log.h"
 
 
-void initQueue(queue_t* container){
+void queue_initQueue(queue_t* container){
     container->head = NULL;
     container->tail = NULL;
     return container;

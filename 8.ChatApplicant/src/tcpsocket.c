@@ -3,8 +3,7 @@
 #include <stdlib.h>
 #include <log.h>
 #include <queue.h>
-
-#define D_MAX_ACCEPT_MACHINE   (5U)
+#include "tcpsocket.h"
 
 typedef struct {
     int fd;
@@ -33,7 +32,7 @@ static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port)
     }
 }
 
-void initHost(int port){
+void ts_initHost(int port){
     /* init host socket and address */
     host.fd = s_createTCPIpv4Socket();
     s_createIPv4Address(&host.sa, "", port);
@@ -47,7 +46,11 @@ void initHost(int port){
     }
 
     /* init container of peer connection */
-    initQueue(&peerMachines);
+    queue_initQueue(&peerMachines);
+}
+
+void ts_deinitHost(){
+    close(host.fd);
 }
 
 void ts_acceptClient(){
@@ -100,43 +103,31 @@ int ts_sendMsg(char* msg, char* ip, int port){
     return retStatus;
 }
 
-void ts_recvMsg(){
+int ts_recvMsg(int socketFD, char** msg, char** ip, int* port){
     int retStatus;
-    int numPeer;
-    int arrPeerSocket[10];
-    char ip[16];
-    int port;
 
     retStatus = D_ERROR;
 
-    /* TODO xu ly cap nhat flag */
-    int flagListenAllPeer = 1;
-    while(flagListenAllPeer) {
-        memset(arrPeerSocket, D_ERROR, sizeof(arrPeerSocket));
-        numPeer = queue_getArrSocketFd(&peerMachines, arrPeerSocket, 10);
+    memset(buffRecv, 0, sizeof(buffRecv)); 
+    /* this function will block until it read from another peer or conection from peer terminate */
+    retStatus = read(socketFD, buffRecv, sizeof(buffRecv));
+    switch (retStatus){
+        case D_ERROR:
+        /* TODO: xu ly read error */
+        break;
 
-        if(0 < numPeer){
-            for(int i=0; i<numPeer; ++i){
-                memset(buffRecv, 0, sizeof(buffRecv)); 
-                retStatus = read(arrPeerSocket[i], buffRecv, sizeof(buffRecv));
+        case D_EOF:
+        /* delete peer socket if conection is terminate */  
+            queue_deletePeerSocket(&peerMachines, socketFD);
+        break;
 
-                switch (retStatus){
-                case D_ERROR:
-                    /* TODO: xu ly read error */
-                    break;
-
-                case D_EOF:
-                    /* delete peer socket */  
-                    queue_deletePeerSocket(&peerMachines, arrPeerSocket[i]);
-
-                default:
-                    /* TODO: read successfully from peer and send data to GUI */
-                    queue_getAddr(&peerMachines, arrPeerSocket[i], &ip, &port);
-                    gui_drawMsg(buffRecv,strlen(buffRecv), ip, port);
-                    break;
-                }
-            }
-        } 
+        default:
+        /* TODO: read successfully from peer and send data to GUI */
+            queue_getAddr(&peerMachines, socketFD, &ip, &port);
+        break;
     }
 
+    /* Update output value*/
+    *msg = buffRecv;
+    return retStatus;
 }
