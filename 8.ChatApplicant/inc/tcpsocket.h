@@ -8,3 +8,5 @@ void ts_connectPeer(char* ip, int port);
 void ts_acceptClient();
 int ts_sendMsg(char* msg, char* ip, int port);
 int ts_recvMsg(int socketFD, char** msg, char** ip, int* port);
+int ts_getHostPort();
+void ts_getHostIP(char* hostIP);

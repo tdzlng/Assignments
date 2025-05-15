@@ -1,7 +1,8 @@
+#include <pthread.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include "control.h"
 #include "tcpsocket.h"
-#include <pthread.h>
-#include <stdlib.h>
 
 #define D_PORT              (1)
 #define D_MAX_CONECTTION    (10)
@@ -34,6 +35,8 @@ void main(int argc, char* argv[]){
                 ctrl_control();
                 ctrl_getDisplay();
                 ctrl_afTsk();
+
+                usleep(10); /* process all task in 10ms */
             }
         }
     } else {

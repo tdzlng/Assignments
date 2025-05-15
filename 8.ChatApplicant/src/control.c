@@ -75,7 +75,6 @@ void ctrl_control(){
     if ((flag>-1) &&
         (flag<D_NUM_CMD)){
         task[flag]();
-
     } else {
         /* TODO invald cmd*/
     }
@@ -99,11 +98,17 @@ static void s_help(){
 }
 
 static void s_myip(){
-    
+    char ip[16] = {0};
+
+    ts_getHostIP(ip);
+    gui_showIP(ip);
 }
 
 static void s_myport(){
+    int port;
 
+    port = ts_getHostPort();
+    gui_showPort(port);
 }
 
 static void s_connect(){

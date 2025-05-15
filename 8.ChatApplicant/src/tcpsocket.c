@@ -55,6 +55,15 @@ void ts_deinitHost(){
     close(host.fd);
 }
 
+int ts_getHostPort(){
+    return ntohl(host.sa.sin_port);
+}
+
+int ts_getHostIP(){
+    char* add 
+    return;
+}
+
 void ts_acceptClient(){
     machine_t client;
     char add[INET_ADDRSTRLEN];
