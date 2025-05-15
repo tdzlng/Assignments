@@ -50,10 +50,14 @@ void queue_enqueue(queue_t* container, int socketFd, uint16_t port, char* ip) {
 }
 
 void queue_destroy(queue_t* container) {
-    node_t*
-    while (condition)
+    node_t* tmp = container->tail;
+
+    while (NULL != tmp)
     {
-        /* code */
+        close(tmp->guest.socketFd);
+        tmp = tmp->next;
+        free(container->tail);
+        container->tail = tmp;
     }
     
 }

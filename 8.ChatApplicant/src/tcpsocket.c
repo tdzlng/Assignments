@@ -16,7 +16,6 @@ typedef struct {
 /* static constant variable */
 static machine_t host = {0};
 static queue_t peerMachines;
-// static char buffSend[256];
 static char buffRecv[256];
 
 static int s_createTCPIpv4Socket(void){ 
@@ -59,26 +58,28 @@ int ts_getHostPort(){
     return ntohl(host.sa.sin_port);
 }
 
-int ts_getHostIP(){
-    char* add 
-    return;
+void ts_getHostIP(char* hostIP){
+    char tmp[INET_ADDRSTRLEN] = {0};
+    
+    inet_ntop(AF_INET, &(host.sa.sin_addr), tmp, INET_ADDRSTRLEN);
+    memcpy(hostIP, tmp, INET_ADDRSTRLEN);
 }
 
 void ts_acceptClient(){
     machine_t client;
-    char add[INET_ADDRSTRLEN];
+    char peerIP[INET_ADDRSTRLEN];
     
     while (1){
         client.fd = accept(host.fd, (struct sockaddr*)(&client.sa), NULL);
-        inet_ntop(AF_INET, &(client.sa.sin_addr), add, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &(client.sa.sin_addr), peerIP, INET_ADDRSTRLEN);
         if(D_ERROR == client.fd) {
             /* TODO: xu ly ko hop le */
             M_LOG("Error accept()");
         } else {
-            queue_enqueue(&peerMachines, client.fd, client.sa.sin_port, add);
+            queue_enqueue(&peerMachines, client.fd, client.sa.sin_port, peerIP);
         }
 
-        printf("ip:%s port:%u\n", add, ntohl(client.sa.sin_port));
+        printf("ip:%s port:%u\n", peerIP, ntohl(client.sa.sin_port));
     }
 }
 
@@ -143,4 +144,8 @@ int ts_recvMsg(int socketFD, char** msg, char** ip, int* port){
     /* Update output value*/
     *msg = buffRecv;
     return retStatus;
+}
+
+void ts_destroyAllPeerMachine(){
+    queue_destroy(&peerMachines);
 }

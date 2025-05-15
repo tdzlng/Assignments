@@ -88,11 +88,6 @@ void ctrl_getInput(){
     sscanf("%s %s %s", parser.command, parser.arg1, parser.arg2);
 }
 
-void ctrl_getDisplay(){
-    
-}
-
-
 static void s_help(){
     gui_drawCMD();
 }
@@ -128,5 +123,7 @@ static void s_send(){
 }
 
 static void s_exit(){
-
+    ts_destroyAllPeerMachine();
+    gui_exit();
+    state = E_STATE_EXIT;
 }

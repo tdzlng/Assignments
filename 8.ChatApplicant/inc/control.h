@@ -12,3 +12,5 @@ void ctrl_afTsk();
 void ctrl_control();
 void ctrl_getInput();
 void ctrl_getDisplay();
+void ctrl_initHost(int port);
+void ctrl_deinitHost();

@@ -22,7 +22,7 @@ void main(int argc, char* argv[]){
         if(port == 0){
             /* TODO process invalid arg */
         } else {
-            ts_initHost(port);
+            ctrl_initHost(port);
 
             pthread_create(&threadAcceptID, NULL, (void * (*)(void *))ts_acceptClient, NULL);
 
@@ -43,8 +43,6 @@ void main(int argc, char* argv[]){
 
     }
 
-    
-
-    ts_deinitHost();
+    ctrl_deinitHost();
     exit(*state);
 }

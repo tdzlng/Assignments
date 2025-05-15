@@ -22,3 +22,4 @@ void gui_showIP(char* ip);
 void gui_showPort(int port);
 void gui_list();
 void gui_error(int errorCode);
+void gui_exit();

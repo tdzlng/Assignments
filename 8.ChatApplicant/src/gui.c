@@ -60,3 +60,7 @@ void gui_error(int errorCode){
         break;
     }
 }
+
+void gui_exit(){
+    printf("Terminate all conection and exit program\n");
+}
