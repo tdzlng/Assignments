@@ -1,7 +1,24 @@
 #include <stdio.h>
+#include <string.h>
 #include "control.h"
 
+static void s_help();
+static void s_myip();
+static void s_myport();
+static void s_connect();
+static void s_list();
+static void s_terminate();
+static void s_send();
+static void s_exit();
+
+
+#define D_NUM_CMD (8)
+
+
 static E_STATE_PROCESS state = E_STATE_NONE;
+
+
+
 
 E_STATE_PROCESS* ctrl_getState(){
     return &state;
@@ -13,17 +30,32 @@ typedef struct {
     char arg2[100];
 } parseCMD_t;
 
+typedef void (*operation_t)(void);
 
 
 static parseCMD_t parser = {0};
-static const char cmd [8][10]={ "help",
-                                "myip",
-                                "myport",
-                                "connect",
-                                "list",
-                                "terminate",
-                                "send",
-                                "exit"};
+
+static const char cmd [D_NUM_CMD][10] = {
+    "help",
+    "myip",
+    "myport",
+    "connect",
+    "list",
+    "terminate",
+    "send",
+    "exit"
+};
+
+static operation_t task[D_NUM_CMD] = {
+    s_help,
+    s_myip,
+    s_myport,
+    s_connect,
+    s_list,
+    s_terminate,
+    s_send,
+    s_exit
+};
 
 void ctrl_bfTsk(){
 
@@ -34,7 +66,22 @@ void ctrl_afTsk(){
 }
 
 void ctrl_control(){
+    int flag = -1;
 
+    for(int i=0; i<D_NUM_CMD; ++i){
+        if(strcmp(cmd[i], parser.command)){
+            flag = i;
+            i=D_NUM_CMD; // break loop
+        }
+    }
+
+    if ((flag>-1) &&
+        (flag<D_NUM_CMD)){
+        task[flag];
+
+    } else {
+        /* TODO invald cmd*/
+    }
 }
 
 void ctrl_getInput(){
@@ -45,12 +92,41 @@ void ctrl_getInput(){
     fgets(buff, sizeof(buff), stdin);
     sscanf("%s %s %s", parser.command, parser.arg1, parser.arg2);
 
-
 }
 
 void ctrl_getDisplay(){
-    str
+    
 }
 
 
-void
+static void s_help(){
+
+}
+
+static void s_myip(){
+
+}
+
+static void s_myport(){
+
+}
+
+static void s_connect(){
+
+}
+
+static void s_list(){
+
+}
+
+static void s_terminate(){
+
+}
+
+static void s_send(){
+    
+}
+
+static void s_exit(){
+
+}
