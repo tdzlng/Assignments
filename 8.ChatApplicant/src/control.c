@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "gui.h"
 #include "control.h"
 
 static void s_help();
@@ -14,15 +15,7 @@ static void s_exit();
 
 #define D_NUM_CMD (8)
 
-
 static E_STATE_PROCESS state = E_STATE_NONE;
-
-
-
-
-E_STATE_PROCESS* ctrl_getState(){
-    return &state;
-}
 
 typedef struct {
     char command[10];
@@ -57,6 +50,10 @@ static operation_t task[D_NUM_CMD] = {
     s_exit
 };
 
+E_STATE_PROCESS* ctrl_getState(){
+    return &state;
+}
+
 void ctrl_bfTsk(){
 
 }
@@ -77,7 +74,7 @@ void ctrl_control(){
 
     if ((flag>-1) &&
         (flag<D_NUM_CMD)){
-        task[flag];
+        task[flag]();
 
     } else {
         /* TODO invald cmd*/
@@ -85,13 +82,11 @@ void ctrl_control(){
 }
 
 void ctrl_getInput(){
-    
     char buff[256] = {0};
 
     fflush(stdin);
     fgets(buff, sizeof(buff), stdin);
     sscanf("%s %s %s", parser.command, parser.arg1, parser.arg2);
-
 }
 
 void ctrl_getDisplay(){
@@ -100,11 +95,11 @@ void ctrl_getDisplay(){
 
 
 static void s_help(){
-
+    gui_drawCMD();
 }
 
 static void s_myip(){
-
+    
 }
 
 static void s_myport(){

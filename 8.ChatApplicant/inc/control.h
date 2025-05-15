@@ -6,8 +6,6 @@ typedef enum {
     E_STATE_DISPLAY
 } E_STATE_PROCESS;
 
-static E_STATE_PROCESS state;
-
 E_STATE_PROCESS ctrl_initState();
 void ctrl_bfTsk();
 void ctrl_afTsk();

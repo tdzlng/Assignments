@@ -32,7 +32,7 @@ void gui_showPort(int port){
 
 void gui_list(){
     /* TODO get data from queue*/
-    queue_getDataPeer();
+    // queue_getDataPeer();
     printf("id:\tIP address\tPort No.\n");
     for(int i=0; i<D_MAX_CONNECTION; ++i){
         if(peer[i].valid == 1){
