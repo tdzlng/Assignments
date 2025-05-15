@@ -23,7 +23,7 @@ void main(int argc, char* argv[]){
         } else {
             ts_initHost(port);
 
-            pthread_create(&threadAcceptID, NULL, ts_acceptClient, NULL);
+            pthread_create(&threadAcceptID, NULL, (void * (*)(void *))ts_acceptClient, NULL);
 
             *state = E_STATE_DISPLAY;
             while ((E_STATE_NONE != *state) &&

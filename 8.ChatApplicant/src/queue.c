@@ -9,7 +9,6 @@
 void queue_initQueue(queue_t* container){
     container->head = NULL;
     container->tail = NULL;
-    return container;
 }
 
 static list_t* s_createNode(int socketFd, uint16_t port, char* ip) {

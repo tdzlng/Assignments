@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <log.h>
 #include <queue.h>
+#include <string.h>
+#include <unistd.h>
 #include "tcpsocket.h"
 
 typedef struct {
@@ -55,17 +57,19 @@ void ts_deinitHost(){
 
 void ts_acceptClient(){
     machine_t client;
+    char add[INET_ADDRSTRLEN];
     
     while (1){
-        client.fd = accept(host.fd, (struct sockaddr*)(&client.sa), sizeof (struct sockaddr_in));
+        client.fd = accept(host.fd, (struct sockaddr*)(&client.sa), NULL);
+        inet_ntop(AF_INET, &(client.sa.sin_addr), add, INET_ADDRSTRLEN);
         if(D_ERROR == client.fd) {
             /* TODO: xu ly ko hop le */
             M_LOG("Error accept()");
         } else {
-            queue_enqueue(&peerMachines, client.fd, client.sa.sin_port, client.sa.sin_addr.s_addr);
+            queue_enqueue(&peerMachines, client.fd, client.sa.sin_port, add);
         }
 
-        printf("ip:%s port:%u\n", client.sa.sin_addr.s_addr, ntohl(client.sa.sin_port));
+        printf("ip:%s port:%u\n", add, ntohl(client.sa.sin_port));
     }
 }
 
@@ -123,7 +127,7 @@ int ts_recvMsg(int socketFD, char** msg, char** ip, int* port){
 
         default:
         /* TODO: read successfully from peer and send data to GUI */
-            queue_getAddr(&peerMachines, socketFD, &ip, &port);
+            queue_getAddr(&peerMachines, socketFD, ip, port);
         break;
     }
 

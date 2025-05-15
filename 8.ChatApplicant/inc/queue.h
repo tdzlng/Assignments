@@ -6,9 +6,9 @@ typedef struct {
     char ip[16]; 
 } data_t;
 
-typedef struct {
+typedef struct list{
     data_t guest;
-    list_t* next;
+    struct list* next;
 } list_t;
 
 typedef struct {

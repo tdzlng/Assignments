@@ -6,7 +6,7 @@ typedef enum {
     E_STATE_DISPLAY
 } E_STATE_PROCESS;
 
-E_STATE_PROCESS ctrl_initState();
+E_STATE_PROCESS* ctrl_getState();
 void ctrl_bfTsk();
 void ctrl_afTsk();
 void ctrl_control();

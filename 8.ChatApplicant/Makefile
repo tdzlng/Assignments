@@ -13,8 +13,6 @@ OBJ_DIR := $(CUR_DIR)/obj
 BIN_DIR := $(CUR_DIR)/bin
 LIB_DIR := $(CUR_DIR)/lib
 LIB_STATIC_DIR := $(LIB_DIR)/static
-LIB_SHARED_DIR := $(LIB_DIR)/shared
-
 
 # Source static library
 SRC_STATIC_FILES := gui.c log.c control.c queue.c tcpsocket.c
@@ -26,7 +24,7 @@ LIB := $(basename $(SRC_STATIC_FILES))
 # Object file
 OBJ_STATIC_FILES := $(SRC_STATIC_FILES:.c=.o)
 OBJ_STATIC_PATH := $(addprefix $(OBJ_DIR)/, $(OBJ_STATIC_FILES))
-OBJ_PATH := $(OBJ_SHARED_PATH) $(OBJ_STATIC_FILES)
+OBJ_PATH := $(OBJ_STATIC_FILES)
 
 # create static library
 $(OBJ_STATIC_PATH):
