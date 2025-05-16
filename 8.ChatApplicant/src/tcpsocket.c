@@ -36,8 +36,11 @@ static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port)
 void ts_initHost(int port){
     /* init host socket and address */
     host.fd = s_createTCPIpv4Socket();
-    s_createIPv4Address(&host.sa, "", port);
+    s_createIPv4Address(&host.sa, "122.1.2.0", port);
+    char buff[100];
 
+    inet_ntop(AF_INET, &(host.sa.sin_addr), buff, INET_ADDRSTRLEN);
+    printf("%s %d %d\n", buff, ntohs(host.sa.sin_port));
     if (D_ERROR == bind(host.fd, (const struct sockaddr*)(&host.sa), sizeof (struct sockaddr_in))){
         M_HANDLE_ERROR("Error host bind()\n");
     }
@@ -55,7 +58,7 @@ void ts_deinitHost(){
 }
 
 int ts_getHostPort(){
-    return ntohl(host.sa.sin_port);
+    return ntohs(host.sa.sin_port);
 }
 
 void ts_getHostIP(char* hostIP){
@@ -79,7 +82,7 @@ void ts_acceptClient(){
             queue_enqueue(&peerMachines, client.fd, client.sa.sin_port, peerIP);
         }
 
-        printf("ip:%s port:%u\n", peerIP, ntohl(client.sa.sin_port));
+        printf("ip:%s port:%u\n", peerIP, ntohs(client.sa.sin_port));
     }
 }
 
