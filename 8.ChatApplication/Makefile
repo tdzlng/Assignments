@@ -3,7 +3,7 @@ TARGET = chat
 
 # Compiler and flags
 CXX = gcc
-CXXFLAGS = -pthread
+CXXFLAGS = -pthread -g
 
 # Directory file
 CUR_DIR := .
