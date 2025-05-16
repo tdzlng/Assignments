@@ -9,6 +9,12 @@ typedef enum {
     E_ERROR_GUI_NONE
 } E_ERROR_GUI_CODE;
 
+typedef enum {
+    E_NOTIFY_ERROR = 0,
+    E_NOTIFY_EXIT,
+    E_NOTIFY_CONNECT_SUCC
+} E_NOTIFY_MESSAGE;
+
 typedef struct {
     int port;
     int valid;
@@ -20,5 +26,5 @@ void gui_drawCMD();
 void gui_showIP(char* ip);
 void gui_showPort(int port);
 void gui_list();
-void gui_error(int errorCode);
-void gui_exit();
+void gui_error(E_ERROR_GUI_CODE errorCode);
+void gui_notify(E_NOTIFY_MESSAGE type);

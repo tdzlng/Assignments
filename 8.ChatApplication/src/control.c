@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "gui.h"
 #include "control.h"
@@ -66,7 +67,7 @@ void ctrl_afTsk(){
 void ctrl_waitClientAccept(){
     ts_acceptClient();
 }
-#include <stdio.h>
+
 void ctrl_control(){
     int flag = -1;
 
@@ -86,7 +87,7 @@ void ctrl_control(){
 }
 
 void ctrl_getInput(){
-    char buff[100] = {0};
+    char buff[256] = {0};
     
     fflush(stdin);
     fgets(buff, sizeof(buff), stdin);
@@ -120,11 +121,27 @@ static void s_myport(){
 }
 
 static void s_connect(){
+    int port = atoi(parser.arg2);
+    char* ip = parser.arg1;
+    int status;
 
+    /** TODO them dieu kien check valid ip */
+    if(1){
+        status = ts_connectPeer(ip, port);
+    } else {
+        status = -1;
+    }
+
+    /* Notify Success */
+    if(status == 0){
+        gui_notify(E_NOTIFY_CONNECT_SUCC);
+    } else {
+        gui_notify(E_NOTIFY_ERROR);
+    }
 }
 
 static void s_list(){
-
+    gui_list();
 }
 
 static void s_terminate(){
@@ -137,7 +154,7 @@ static void s_send(){
 
 static void s_exit(){
     ts_destroyAllPeerMachine();
-    gui_exit();
+    gui_notify(E_NOTIFY_EXIT);
     state = E_STATE_EXIT;
 }
 

@@ -79,13 +79,15 @@ void ts_acceptClient(){
             M_LOG("Error accept()");
         } else {
             queue_enqueue(&peerMachines, client.fd, client.sa.sin_port, peerIP);
+            /* TODO notify a peer try connection to host */
+
         }
 
         printf("ip:%s port:%u\n", peerIP, ntohs(client.sa.sin_port));
     }
 }
 
-void ts_connectPeer(char* ip, int port){
+int ts_connectPeer(char* ip, int port){
     int retStatus;
     machine_t peer;
 
@@ -100,6 +102,8 @@ void ts_connectPeer(char* ip, int port){
 
        queue_enqueue(&peerMachines, peer.fd, port, ip);
     }
+
+    return retStatus;
 }
 
 int ts_sendMsg(char* msg, char* ip, int port){
@@ -111,7 +115,11 @@ int ts_sendMsg(char* msg, char* ip, int port){
     /* TODO: xu ly check dieu kien ip hop le */
     if(1){
         peerSocketFD = queue_getSocketFd(&peerMachines, ip, port);
-        retStatus = write(peerSocketFD, msg, sizeof(msg));
+        if(D_ERROR != peerSocketFD){
+            retStatus = write(peerSocketFD, msg, sizeof(msg));
+        } else {
+            //
+        }
     } else {
         /* TODO: xu ly ip ko hop le */
     }

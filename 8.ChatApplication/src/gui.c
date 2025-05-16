@@ -47,7 +47,7 @@ void gui_list(){
     printf("\n");
 }
 
-void gui_error(int errorCode){
+void gui_error(E_ERROR_GUI_CODE errorCode){
     switch (errorCode){
     case E_ERROR_GUI_INVALID_CONECTION:
         printf("Connection does not exist\n");
@@ -66,6 +66,17 @@ void gui_error(int errorCode){
     }
 }
 
-void gui_exit(){
-    printf("Terminate all conection and exit program\n");
+void gui_notify(E_NOTIFY_MESSAGE type){
+    switch (type){
+    case E_NOTIFY_CONNECT_SUCC:
+        printf("Connect to Peer Successfully\n");
+        break;
+    case E_NOTIFY_EXIT:
+        printf("Terminate all conection and exit program\n");
+        break;
+    default:
+        /* TODO error process anouncement */
+        gui_error(1);
+        break;
+    }
 }
