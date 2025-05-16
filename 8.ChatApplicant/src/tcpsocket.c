@@ -36,11 +36,10 @@ static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port)
 void ts_initHost(int port){
     /* init host socket and address */
     host.fd = s_createTCPIpv4Socket();
-    s_createIPv4Address(&host.sa, "122.1.2.0", port);
+    s_createIPv4Address(&host.sa, "", port);
     char buff[100];
 
     inet_ntop(AF_INET, &(host.sa.sin_addr), buff, INET_ADDRSTRLEN);
-    printf("%s %d %d\n", buff, ntohs(host.sa.sin_port));
     if (D_ERROR == bind(host.fd, (const struct sockaddr*)(&host.sa), sizeof (struct sockaddr_in))){
         M_HANDLE_ERROR("Error host bind()\n");
     }
