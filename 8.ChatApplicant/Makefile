@@ -3,7 +3,7 @@ TARGET = chat
 
 # Compiler and flags
 CXX = gcc
-CXXFLAGS = -std=c++11
+CXXFLAGS = –pthread
 
 # Directory file
 CUR_DIR := .
@@ -26,20 +26,17 @@ OBJ_STATIC_FILES := $(SRC_STATIC_FILES:.c=.o)
 OBJ_STATIC_PATH := $(addprefix $(OBJ_DIR)/, $(OBJ_STATIC_FILES))
 OBJ_PATH := $(OBJ_STATIC_FILES)
 
-# create static library
+# create object file
 $(OBJ_STATIC_PATH):
-	gcc -c $(SRC_DIR)/$(basename $(notdir $@)).c -o $@ -I$(INC_DIR)
-
-$(OBJ_STATIC_FILES): $(OBJ_STATIC_PATH)
-	ar -cr $(LIB_STATIC_DIR)/lib$(basename $(notdir $@)).a $(OBJ_DIR)/$@
+	gcc $(CXXFLAGS) -c $(SRC_DIR)/$(basename $(notdir $@)).c -o $@ -I$(INC_DIR)
 
 # main object
 main.o:
-	gcc -c $(SRC_DIR)/main.c -o $(OBJ_DIR)/main.o -I$(INC_DIR)
+	gcc $(CXXFLAGS) -c $(SRC_DIR)/main.c -o $(OBJ_DIR)/main.o -I$(INC_DIR)
 
 # linking
-all: main.o $(OBJ_STATIC_FILES) 
-	gcc $(OBJ_DIR)/$< -L$(LIB_STATIC_DIR) $(addprefix -l, $(LIB)) -o $(BIN_DIR)/$(TARGET)
+all: main.o $(OBJ_STATIC_PATH) 
+	gcc $(CXXFLAGS) -o $(BIN_DIR)/$(TARGET)  $(OBJ_DIR)/$< $(OBJ_STATIC_PATH)  
 
 clean:
 	rm -rf $(BIN_DIR)/main $(OBJ_DIR)/*.o $(LIB_STATIC_DIR)/*.a
