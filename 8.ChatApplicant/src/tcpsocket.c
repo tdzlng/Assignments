@@ -149,3 +149,7 @@ int ts_recvMsg(int socketFD, char** msg, char** ip, int* port){
 void ts_destroyAllPeerMachine(){
     queue_destroy(&peerMachines);
 }
+
+int ts_getDataPeer(char **ip, int *port){
+    return queue_getDataPeer(&peerMachines, ip, port);
+}

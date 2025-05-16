@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "control.h"
-#include "tcpsocket.h"
 
 #define D_PORT              (1)
 #define D_MAX_CONECTTION    (10)
@@ -24,7 +23,7 @@ void main(int argc, char* argv[]){
         } else {
             ctrl_initHost(port);
 
-            pthread_create(&threadAcceptID, NULL, (void * (*)(void *))ts_acceptClient, NULL);
+            pthread_create(&threadAcceptID, NULL, (void * (*)(void *))ctrl_waitClientAccept, NULL);
 
             *state = E_STATE_DISPLAY;
             while ((E_STATE_NONE != *state) &&

@@ -2,6 +2,7 @@
 #include <string.h>
 #include "gui.h"
 #include "control.h"
+#include "tcpsocket.h"
 
 static void s_help();
 static void s_myip();
@@ -60,6 +61,10 @@ void ctrl_bfTsk(){
 
 void ctrl_afTsk(){
 
+}
+
+void ctrl_waitClientAccept(){
+    ts_acceptClient();
 }
 
 void ctrl_control(){
@@ -135,3 +140,4 @@ static void s_exit(){
     gui_exit();
     state = E_STATE_EXIT;
 }
+

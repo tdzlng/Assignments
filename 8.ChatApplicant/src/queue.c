@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "queue.h"
 #include "log.h"
 
@@ -105,6 +106,7 @@ int queue_getSocketFd(queue_t* container, char *ip, int port){
     return ret;
 }
 
+/* TODO num will be value out put not input*/
 int queue_getArrSocketFd(queue_t* container, int* arr, int num){
     int i=0;
     int isQueueEmpty;
@@ -201,6 +203,28 @@ int queue_getAddr(queue_t* container, int fd, char** ip, int *port){
     return flag;
 }
 
-void queue_getDataPeer(char** ip, int* port){
+int queue_getDataPeer(queue_t* container, char** ip, int* port){
+    int i=0;
+    int isQueueEmpty;
+    node_t* tmp = NULL;
+    int ret;            /* if suceesfull return the number of socketFD else return -1 */
 
+    ret = 0;
+    isQueueEmpty = s_checkEmptyQueue(container);
+    if( isQueueEmpty ) {
+        ret = D_ERROR;
+    } else {
+        tmp = container->tail;
+        while ((NULL != tmp)) { 
+            port[i] = tmp->guest.port;
+            memcpy(ip[i],tmp->guest.ip, 16);
+
+            /* Update value */
+            tmp = tmp->next;
+            ++i;
+        }
+        ret = i;
+    }
+
+    return ret;
 }

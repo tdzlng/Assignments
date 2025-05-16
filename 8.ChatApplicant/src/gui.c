@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "gui.h"
+#include "tcpsocket.h"
 
 
 static const char listCMD[] = "1. help\n2. myip\n3. myport\n4. connect <destination> <port no>\n5. list\n6. terminate <connection id.>\n7. send <connection id.> <message>\n\n";
@@ -34,7 +35,7 @@ void gui_showPort(int port){
 void gui_list(){
     int maxPeer;
 
-    maxPeer = queue_getDataPeer(peerIP, peerPort);
+    maxPeer = ts_getDataPeer((char**)peerIP, peerPort);
     if(maxPeer > 0){
         printf("id:\tIP address\tPort No.\n");
         for(int i=0; i<maxPeer; ++i){
