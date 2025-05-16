@@ -3,7 +3,7 @@ TARGET = chat
 
 # Compiler and flags
 CXX = gcc
-CXXFLAGS = –pthread
+CXXFLAGS = -pthread
 
 # Directory file
 CUR_DIR := .
@@ -28,15 +28,14 @@ OBJ_PATH := $(OBJ_STATIC_FILES)
 
 # create object file
 $(OBJ_STATIC_PATH):
-	gcc $(CXXFLAGS) -c $(SRC_DIR)/$(basename $(notdir $@)).c -o $@ -I$(INC_DIR)
+	gcc -c $(SRC_DIR)/$(basename $(notdir $@)).c -o $@ -I$(INC_DIR)
 
 # main object
 main.o:
-	gcc $(CXXFLAGS) -c $(SRC_DIR)/main.c -o $(OBJ_DIR)/main.o -I$(INC_DIR)
+	gcc -c $(SRC_DIR)/main.c -o $(OBJ_DIR)/main.o -I$(INC_DIR)
 
 # linking
 all: main.o $(OBJ_STATIC_PATH) 
-	gcc $(CXXFLAGS) -o $(BIN_DIR)/$(TARGET)  $(OBJ_DIR)/$< $(OBJ_STATIC_PATH)  
-
+	gcc -o $(BIN_DIR)/$(TARGET)  $(OBJ_DIR)/$< $(OBJ_STATIC_PATH) $(CXXFLAGS)
 clean:
 	rm -rf $(BIN_DIR)/main $(OBJ_DIR)/*.o $(LIB_STATIC_DIR)/*.a
