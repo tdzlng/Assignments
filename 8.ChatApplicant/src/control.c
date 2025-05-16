@@ -66,12 +66,12 @@ void ctrl_afTsk(){
 void ctrl_waitClientAccept(){
     ts_acceptClient();
 }
-
+#include <stdio.h>
 void ctrl_control(){
     int flag = -1;
 
     for(int i=0; i<D_NUM_CMD; ++i){
-        if(strcmp(cmd[i], parser.command)){
+        if(strcmp(cmd[i], parser.command) == 0){
             flag = i;
             i=D_NUM_CMD; // break loop
         }
@@ -86,11 +86,11 @@ void ctrl_control(){
 }
 
 void ctrl_getInput(){
-    char buff[256] = {0};
-
+    char buff[100] = {0};
+    
     fflush(stdin);
     fgets(buff, sizeof(buff), stdin);
-    sscanf("%s %s %s", parser.command, parser.arg1, parser.arg2);
+    sscanf(buff,"%s %s %s", parser.command, parser.arg1, parser.arg2);
 }
 
 void ctrl_initHost(int port){
