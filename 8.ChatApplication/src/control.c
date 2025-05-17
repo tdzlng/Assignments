@@ -57,7 +57,7 @@ E_STATE_PROCESS* ctrl_getState(){
 }
 
 void ctrl_bfTsk(){
-
+    memset((char*)&parser,0, sizeof(parser));
 }
 
 void ctrl_afTsk(){
@@ -88,9 +88,10 @@ void ctrl_control(){
 
 void ctrl_getInput(){
     char buff[256] = {0};
+    char* status = NULL;
     
     fflush(stdin);
-    fgets(buff, sizeof(buff), stdin);
+    status = fgets(buff, sizeof(buff), stdin);
     sscanf(buff,"%s %s %s", parser.command, parser.arg1, parser.arg2);
 }
 

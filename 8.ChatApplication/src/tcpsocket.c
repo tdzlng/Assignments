@@ -161,7 +161,7 @@ void ts_destroyAllPeerMachine(){
     queue_destroy(&peerMachines);
 }
 
-int ts_getDataPeer(char **ip, int *port){
+int ts_getDataPeer(char (*ip)[16], int *port){
     return queue_getDataPeer(&peerMachines, ip, port);
 }
 

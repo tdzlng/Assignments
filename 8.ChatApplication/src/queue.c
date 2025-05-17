@@ -215,7 +215,7 @@ int queue_getAddr(queue_t* container, int fd, char** ip, int *port){
     return flag;
 }
 
-int queue_getDataPeer(queue_t* container, char** ip, int* port){
+int queue_getDataPeer(queue_t* container, char (*ip)[16], int* port){
     int i=0;
     int isQueueEmpty;
     node_t* tmp = NULL;

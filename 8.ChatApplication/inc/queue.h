@@ -25,4 +25,4 @@ int queue_getArrSocketFd(queue_t* container, int* arr, int num);
 int queue_deletePeerSocket(queue_t* container, int socket);
 int queue_getAddr(queue_t* container, int fd, char** ip, int *port);
 void queue_destroy(queue_t* container);
-int queue_getDataPeer(queue_t* container, char** ip, int* port);
+int queue_getDataPeer(queue_t* container, char (*ip)[16], int* port);

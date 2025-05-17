@@ -35,7 +35,7 @@ void gui_showPort(int port){
 void gui_list(){
     int maxPeer;
 
-    maxPeer = ts_getDataPeer((char**)peerIP, peerPort);
+    maxPeer = ts_getDataPeer(peerIP, peerPort);
     if(maxPeer > 0){
         printf("id:\tIP address\tPort No.\n");
         for(int i=0; i<maxPeer; ++i){
