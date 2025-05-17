@@ -172,16 +172,27 @@ int queue_deletePeerSocket(queue_t* container, int socket){
 
         /* found socket */
         if(flag == 1){
-        /* if not 1st tail node */
-            if(NULL != preNode){
-                preNode->next = deleteNode->next;
-            } else {
+        
+            if( (deleteNode == container->head) &&
+                (deleteNode == container->tail) ){
+                container->head = NULL;
+                container->tail = NULL;
+
+            } else if (deleteNode == container->tail) {
+                /* if 1st tail node */
                 container->tail = deleteNode->next;
+
+            } else if (deleteNode == container->head) {
+                /* if last node */
+                preNode->next = NULL;
+                container->head = preNode;
+            } else {
+                /* middle node */
+                preNode->next = deleteNode->next;
             }
 
             free(deleteNode);
         }
-
     }
 
     return flag;

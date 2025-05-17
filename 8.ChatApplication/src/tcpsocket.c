@@ -35,11 +35,15 @@ static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port)
 
 void ts_initHost(int port){
     /* init host socket and address */
+    int opt = 1; // enable option
     host.fd = s_createTCPIpv4Socket();
     s_createIPv4Address(&host.sa, "", port);
-    char buff[100];
 
-    inet_ntop(AF_INET, &(host.sa.sin_addr), buff, INET_ADDRSTRLEN);
+    /* prevent address in used*/
+    if(D_ERROR == setsockopt(host.fd, SOL_SOCKET, SO_REUSEADDR|SO_REUSEPORT,&opt,sizeof(opt))){
+         M_HANDLE_ERROR("Error setsockopt()\n");
+    }
+
     if (D_ERROR == bind(host.fd, (const struct sockaddr*)(&host.sa), sizeof (struct sockaddr_in))){
         M_HANDLE_ERROR("Error host bind()\n");
     }
@@ -73,12 +77,12 @@ void ts_acceptClient(){
     
     while (1){
         client.fd = accept(host.fd, (struct sockaddr*)(&client.sa), NULL);
-        inet_ntop(AF_INET, &(client.sa.sin_addr), peerIP, INET_ADDRSTRLEN);
         if(D_ERROR == client.fd) {
             /* TODO: xu ly ko hop le */
             M_LOG("Error accept()");
         } else {
-            queue_enqueue(&peerMachines, client.fd, client.sa.sin_port, peerIP);
+            inet_ntop(AF_INET, &(client.sa.sin_addr), peerIP, INET_ADDRSTRLEN);
+            queue_enqueue(&peerMachines, client.fd, ntohs(client.sa.sin_port), peerIP);
             /* TODO notify a peer try connection to host */
 
         }
