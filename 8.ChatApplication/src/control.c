@@ -145,10 +145,28 @@ static void s_list(){
 }
 
 static void s_terminate(){
+    int status;
+    int id = atoi(parser.arg1);
 
+    if(1){
+        status = ts_removePeerSocket(id);
+    } else {
+
+    }
 }
 
 static void s_send(){
+    int id;
+    char* msg = NULL;
+    int status;
+
+    id = atoi(parser.arg1);
+    if(1){
+        msg = parser.command;
+        status = ts_sendMsg(msg, id);
+    } else {
+
+    }
     
 }
 

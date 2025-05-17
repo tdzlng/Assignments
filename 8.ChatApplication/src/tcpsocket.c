@@ -97,6 +97,7 @@ int ts_connectPeer(char* ip, int port){
     retStatus = connect(peer.fd, (struct sockaddr*)(&peer.sa), sizeof (struct sockaddr_in));
     if(D_ERROR == retStatus) {
         /* TODO: xu ly ko hop le */
+        close(peer.fd);
     } else {
         /* TODO: thong bao write connect den peer*/
 
@@ -106,7 +107,7 @@ int ts_connectPeer(char* ip, int port){
     return retStatus;
 }
 
-int ts_sendMsg(char* msg, char* ip, int port){
+int ts_sendMsg(char* msg, int id){
     int retStatus;
     int peerSocketFD;
 
@@ -114,7 +115,7 @@ int ts_sendMsg(char* msg, char* ip, int port){
 
     /* TODO: xu ly check dieu kien ip hop le */
     if(1){
-        peerSocketFD = queue_getSocketFd(&peerMachines, ip, port);
+        peerSocketFD = queue_getSocketFd(&peerMachines, id);
         if(D_ERROR != peerSocketFD){
             retStatus = write(peerSocketFD, msg, sizeof(msg));
         } else {
@@ -162,4 +163,22 @@ void ts_destroyAllPeerMachine(){
 
 int ts_getDataPeer(char **ip, int *port){
     return queue_getDataPeer(&peerMachines, ip, port);
+}
+
+int ts_removePeerSocket(int id){
+    int socketFD;
+    int ret;
+
+    socketFD = queue_getSocketFd(&peerMachines, id);
+    if(socketFD == D_ERROR){
+        /* not exist socketFD return -1 */
+        ret = D_ERROR;
+    } else {
+        /* socket found and destroy peer's address */
+        ret = D_OK;
+        queue_deletePeerSocket(&peerMachines, socketFD);
+        close(socketFD);
+    }
+
+    return ret;
 }

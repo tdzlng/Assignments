@@ -7,6 +7,12 @@
 #include "log.h"
 
 
+
+static int s_checkEmptyQueue(queue_t* container);
+static node_t* s_createNode(int socketFd, uint16_t port, char* ip);
+static int s_getNode(queue_t* container, int id, node_t* node);
+
+
 void queue_initQueue(queue_t* container){
     container->head = NULL;
     container->tail = NULL;
@@ -63,39 +69,45 @@ void queue_destroy(queue_t* container) {
     
 }
 
-static int s_getNode(queue_t* container, char* ip, int port, node_t* node){
+static int s_getNode(queue_t* container, int id, node_t* node){
     node_t* tmp = NULL;
     int isQueueEmpty;
     int flag;           /* if find the right ip flag = 1 */
 
-    flag = 0;
+    flag = D_OFF;
+    tmp = container->tail;
+
     isQueueEmpty = s_checkEmptyQueue(container);
     if(isQueueEmpty) {
 
-    } else {
-        tmp = container->tail;
-
-        /* Search list by ip */
+    } else if (id >= 0) {
+        /* id >= 0 search by id */
         while((NULL != tmp) && (flag == 0)){
-            if ((strcmp(tmp->guest.ip, ip) == 0) && (tmp->guest.port == port)) {
-                flag = 1;
-            } else {
+            if (id > 0){
+                --id;
                 tmp = tmp->next;
+            } else {
+                flag = D_ON;   // find right socket and break loop
             }
-        }
+        }        
     }
 
     /* return value */
-    *node = *tmp;
+    if(flag == D_ON){
+        *node = *tmp;
+    } else {
+        node = NULL;
+    }
+    
     return flag;
 }
 
-int queue_getSocketFd(queue_t* container, char *ip, int port){
+int queue_getSocketFd(queue_t* container, int id){
     int flag;
     node_t node;
-    int ret;
+    int ret;            // return socket ID if exist else return -1
 
-    flag = s_getNode(container, ip, port, &node);
+    flag = s_getNode(container, id, &node);
     if(flag){
         /* socket found */
         ret = node.guest.socketFd;

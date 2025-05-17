@@ -25,7 +25,7 @@ void main(int argc, char* argv[]){
         } else {
             ctrl_initHost(port);
 
-            // pthread_create(&threadAcceptID, NULL, (void * (*)(void *))ctrl_waitClientAccept, NULL);
+            pthread_create(&threadAcceptID, NULL, (void * (*)(void *))ctrl_waitClientAccept, NULL);
 
             
             *state = E_STATE_DISPLAY;
