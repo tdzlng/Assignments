@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include "gui.h"
 #include "control.h"
 #include "tcpsocket.h"
+#include "log.h"
 
 static void s_help();
 static void s_myip();
@@ -25,10 +27,12 @@ typedef struct {
     char arg2[100];
 } parseCMD_t;
 
+
 typedef void (*operation_t)(void);
 
 
 static parseCMD_t parser = {0};
+
 
 static const char cmd [D_NUM_CMD][10] = {
     "help",
@@ -55,6 +59,19 @@ static operation_t task[D_NUM_CMD] = {
 E_STATE_PROCESS* ctrl_getState(){
     return &state;
 }
+
+void* ctrl_read(void* sockFD){
+    char* buff = NULL;
+    int length; 
+    char* ip = NULL;
+    int port;
+    
+    ts_recvMsg(*((int*)sockFD), &buff, &ip, &port);
+    length = strlen(buff);
+    gui_drawMsg(buff, length, ip, port);
+}
+
+
 
 void ctrl_bfTsk(){
     memset((char*)&parser,0, sizeof(parser));
@@ -97,10 +114,15 @@ void ctrl_getInput(){
 
 void ctrl_initHost(int port){
     ts_initHost(port);
+    ts_initCb(ctrl_read);
 }
 
 void ctrl_deinitHost(){
     ts_deinitHost();
+}
+
+void ctrl_readMsg(){
+
 }
 
 static void s_help(){
@@ -168,7 +190,6 @@ static void s_send(){
     } else {
 
     }
-    
 }
 
 static void s_exit(){
@@ -176,4 +197,3 @@ static void s_exit(){
     gui_notify(E_NOTIFY_EXIT);
     state = E_STATE_EXIT;
 }
-

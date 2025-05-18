@@ -1,9 +1,10 @@
 #include <pthread.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include "control.h"
-#include "stdio.h"
 
+#define _BSD_SOURCE
 #define D_PORT              (1)
 #define D_MAX_CONECTTION    (10)
 
@@ -45,6 +46,7 @@ void main(int argc, char* argv[]){
 
     }
 
+    pthread_cancel(threadAcceptID);
     ctrl_deinitHost();
     exit(*state);
 }

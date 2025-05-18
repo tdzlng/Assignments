@@ -5,6 +5,7 @@
 #include <queue.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 #include "tcpsocket.h"
 
 typedef struct {
@@ -12,11 +13,24 @@ typedef struct {
     struct sockaddr_in sa;
 } machine_t;
 
+typedef struct {
+    pthread_t ID;
+    int isUsed;
+    int fd;
+} readThreadID_t;
+
+static int s_createThreadRead(int socketFd);
+static void s_destroyThread(int socketFd);
+static int s_createTCPIpv4Socket(void);
+static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port);
 
 /* static constant variable */
 static machine_t host = {0};
 static queue_t peerMachines;
 static char buffRecv[256];
+static int numReadThread = 0;
+static readThreadID_t tReadID[D_MAX_ACCEPT_MACHINE] = {0};
+static cbFunc_t s_ctrlRead = NULL;
 
 static int s_createTCPIpv4Socket(void){ 
     return socket(AF_INET, SOCK_STREAM, 0);
@@ -33,6 +47,10 @@ static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port)
     }
 }
 
+void ts_initCb(cbFunc_t ptr){
+    s_ctrlRead = ptr;
+}
+
 void ts_initHost(int port){
     /* init host socket and address */
     int opt = 1; // enable option
@@ -41,7 +59,7 @@ void ts_initHost(int port){
 
     /* prevent address in used*/
     if(D_ERROR == setsockopt(host.fd, SOL_SOCKET, SO_REUSEADDR,&opt,sizeof(opt))){
-         M_HANDLE_ERROR("Error setsockopt()\n");
+        M_HANDLE_ERROR("Error setsockopt()\n");
     }
 
     if (D_ERROR == bind(host.fd, (const struct sockaddr*)(&host.sa), sizeof (struct sockaddr_in))){
@@ -83,16 +101,51 @@ void ts_acceptClient(){
         if(D_ERROR == client.fd) {
             /* TODO: xu ly ko hop le */
             M_HANDLE_ERROR("Error accept()");
-        } else {
+
+        } else if (numReadThread <= D_MAX_ACCEPT_MACHINE) {
+            /* Add an element to the container */
             inet_ntop(AF_INET, &(client.sa.sin_addr), peerIP, INET_ADDRSTRLEN);
             queue_enqueue(&peerMachines, client.fd, ntohs(client.sa.sin_port), peerIP);
+
+            /* create thread for each peer connection to read */
+            s_createThreadRead(client.fd);
+
             /* TODO notify a peer try connection to host */
 
+        } else {
+            /* maximum the number of connecting peer */
+            close(client.fd);
         }
-
-        printf("ip:%s port:%u\n", peerIP, ntohs(client.sa.sin_port));
     }
 }
+
+static int s_createThreadRead(int socketFd){
+    int checkValidThread;
+    int i;
+    int numReadThread;
+
+    i = 0;
+    checkValidThread = D_OFF;
+    while ((D_OFF == checkValidThread) && 
+            (i < D_MAX_ACCEPT_MACHINE)){
+        if (D_OFF == tReadID[i].isUsed){
+            /* assign a thread to read msg from peer */
+            pthread_create(&(tReadID[i].ID), NULL, s_ctrlRead, &socketFd);
+
+            /*Update value*/
+            tReadID[i].isUsed = D_ON;
+            tReadID[i].fd = socketFd;
+            ++numReadThread;
+            checkValidThread = D_ON; // break loop
+        } else {
+            /* check the next thread is occupy or not */
+            ++i;
+        }
+    }
+
+    return checkValidThread;
+}
+
 
 int ts_connectPeer(char* ip, int port){
     int retStatus;
@@ -103,12 +156,18 @@ int ts_connectPeer(char* ip, int port){
 
     retStatus = connect(peer.fd, (struct sockaddr*)(&peer.sa), sizeof (struct sockaddr_in));
     if(D_ERROR == retStatus) {
-        /* TODO: xu ly ko hop le */
-        close(peer.fd);
-    } else {
+        /* TODO xu loi connect */
+
+    } else if (numReadThread <= D_MAX_ACCEPT_MACHINE) {
         /* TODO: thong bao write connect den peer*/
 
-       queue_enqueue(&peerMachines, peer.fd, port, ip);
+        queue_enqueue(&peerMachines, peer.fd, port, ip);
+
+        /* create thread for each peer connection to read */
+        s_createThreadRead(peer.fd);
+
+    } else {
+        close(peer.fd);
     }
 
     return retStatus;
@@ -149,7 +208,8 @@ int ts_recvMsg(int socketFD, char** msg, char** ip, int* port){
         break;
 
         case D_EOF:
-        /* delete peer socket if conection is terminate */  
+        /* delete peer socket if conection is terminate */ 
+            s_destroyThread(socketFD);
             queue_deletePeerSocket(&peerMachines, socketFD);
         break;
 
@@ -183,9 +243,20 @@ int ts_removePeerSocket(int id){
     } else {
         /* socket found and destroy peer's address */
         ret = D_OK;
+        s_destroyThread(id);
         queue_deletePeerSocket(&peerMachines, socketFD);
         close(socketFD);
     }
 
     return ret;
+}
+
+static void s_destroyThread(int socketFd){
+    for(int i=0;i<D_MAX_ACCEPT_MACHINE;++i){
+        if(tReadID[i].fd == socketFd){
+            pthread_cancel(tReadID[i].ID);
+            tReadID[i].isUsed = D_OFF;
+            i = D_MAX_ACCEPT_MACHINE; // break loop
+        }
+    }
 }

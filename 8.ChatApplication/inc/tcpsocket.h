@@ -1,10 +1,12 @@
 #define D_MAX_ACCEPT_MACHINE   (5U)
 
+typedef void* (*cbFunc_t)(void*);
+
+void ts_initCb(cbFunc_t ptr);
 void ts_initHost(int port);
 void ts_deinitHost();
 void ts_acceptClient();
 int ts_connectPeer(char* ip, int port);
-void ts_acceptClient();
 int ts_sendMsg(char* msg, int id);
 int ts_recvMsg(int socketFD, char** msg, char** ip, int* port);
 int ts_getHostPort();

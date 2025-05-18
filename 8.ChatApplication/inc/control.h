@@ -15,3 +15,4 @@ void ctrl_getDisplay();
 void ctrl_initHost(int port);
 void ctrl_deinitHost();
 void ctrl_waitClientAccept();
+void* ctrl_read(void* sockFD);
