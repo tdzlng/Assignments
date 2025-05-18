@@ -40,7 +40,7 @@ void ts_initHost(int port){
     s_createIPv4Address(&host.sa, "", port);
 
     /* prevent address in used*/
-    if(D_ERROR == setsockopt(host.fd, SOL_SOCKET, SO_REUSEADDR|SO_REUSEPORT,&opt,sizeof(opt))){
+    if(D_ERROR == setsockopt(host.fd, SOL_SOCKET, SO_REUSEADDR,&opt,sizeof(opt))){
          M_HANDLE_ERROR("Error setsockopt()\n");
     }
 
@@ -74,12 +74,15 @@ void ts_getHostIP(char* hostIP){
 void ts_acceptClient(){
     machine_t client;
     char peerIP[INET_ADDRSTRLEN];
+    socklen_t length;
+
+    length = sizeof(struct sockaddr_in);
     
     while (1){
-        client.fd = accept(host.fd, (struct sockaddr*)(&client.sa), NULL);
+        client.fd = accept(host.fd, (struct sockaddr*)(&client.sa), &length);
         if(D_ERROR == client.fd) {
             /* TODO: xu ly ko hop le */
-            M_LOG("Error accept()");
+            M_HANDLE_ERROR("Error accept()");
         } else {
             inet_ntop(AF_INET, &(client.sa.sin_addr), peerIP, INET_ADDRSTRLEN);
             queue_enqueue(&peerMachines, client.fd, ntohs(client.sa.sin_port), peerIP);

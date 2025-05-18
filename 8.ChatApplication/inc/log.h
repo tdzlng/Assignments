@@ -14,6 +14,6 @@
 
 // macro function
 #define M_HANDLE_ERROR(msg) \
-    { perror(msg); exit(EXIT_FAILURE);}
+    { perror(msg);}
 #define M_LOG(msg) \
     { printf("Server Log: %s\n",msg);}

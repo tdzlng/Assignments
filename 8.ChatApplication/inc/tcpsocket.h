@@ -10,5 +10,5 @@ int ts_recvMsg(int socketFD, char** msg, char** ip, int* port);
 int ts_getHostPort();
 void ts_getHostIP(char* hostIP);
 void ts_destroyAllPeerMachine();
-int ts_getDataPeer(char ip[][16], int *port);
+int ts_getDataPeer(char (*ip)[16], int *port);
 int ts_removePeerSocket(int id);
