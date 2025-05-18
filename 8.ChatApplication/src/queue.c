@@ -96,7 +96,7 @@ static int s_getNode(queue_t* container, int id, node_t* node){
     if(flag == D_ON){
         *node = *tmp;
     } else {
-        node = NULL;
+
     }
     
     return flag;
@@ -206,7 +206,9 @@ int queue_getAddr(queue_t* container, int fd, char** ip, int *port){
     flag = 0;
     isQueueEmpty = s_checkEmptyQueue(container);
     if(isQueueEmpty) {
-
+        /* output value */
+        *port = 0;
+        *ip = NULL;
     } else {
         tmp = container->tail;
 
@@ -218,11 +220,12 @@ int queue_getAddr(queue_t* container, int fd, char** ip, int *port){
                 tmp = tmp->next;
             }
         }
-    }
 
-    /* return value */
+    /* output value */
     *port = tmp->guest.port;
     *ip = tmp->guest.ip;
+    }
+
     return flag;
 }
 

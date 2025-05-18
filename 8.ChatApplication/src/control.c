@@ -7,6 +7,8 @@
 #include "tcpsocket.h"
 #include "log.h"
 
+extern int ts_dataFD;
+
 static void s_help();
 static void s_myip();
 static void s_myport();
@@ -60,15 +62,22 @@ E_STATE_PROCESS* ctrl_getState(){
     return &state;
 }
 
-void* ctrl_read(void* sockFD){
+void* ctrl_read(void* arg){
     char* buff = NULL;
     int length; 
     char* ip = NULL;
     int port;
-    
-    ts_recvMsg(*((int*)sockFD), &buff, &ip, &port);
-    length = strlen(buff);
-    gui_drawMsg(buff, length, ip, port);
+    int status = 1;
+    int sockFD;
+
+    sockFD = ts_dataFD;
+    ts_dataFD = 0;
+
+    while(status > 0){
+        status = ts_recvMsg(sockFD, &buff, &ip, &port);
+        length = strlen(buff);
+        gui_drawMsg(buff, length, ip, port);
+    }
 }
 
 
@@ -119,10 +128,6 @@ void ctrl_initHost(int port){
 
 void ctrl_deinitHost(){
     ts_deinitHost();
-}
-
-void ctrl_readMsg(){
-
 }
 
 static void s_help(){
@@ -185,7 +190,7 @@ static void s_send(){
 
     id = atoi(parser.arg1);
     if(1){
-        msg = parser.command;
+        msg = parser.arg2;
         status = ts_sendMsg(msg, id);
     } else {
 

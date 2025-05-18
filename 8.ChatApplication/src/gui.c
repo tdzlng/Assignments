@@ -37,9 +37,9 @@ void gui_list(){
 
     maxPeer = ts_getDataPeer(peerIP, peerPort);
     if(maxPeer > 0){
-        printf("id:\tIP address\t\tPort No.\n");
+        printf("id:\tIP address\tPort No.\n");
         for(int i=0; i<maxPeer; ++i){
-            printf("%2d:\t%15s\t\t%d\n",i, peerIP[i], peerPort[i]);
+            printf("%2d:\t%.15s\t%d\n",i, peerIP[i], peerPort[i]);
         }
     } else {
         printf("List chat is empty\n");
