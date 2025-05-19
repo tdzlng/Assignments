@@ -73,10 +73,12 @@ void* ctrl_read(void* arg){
     sockFD = ts_dataFD;
     ts_dataFD = 0;
 
-    while(status > 0){
+    while(status > D_EOF){
         status = ts_recvMsg(sockFD, &buff, &ip, &port);
-        length = strlen(buff);
-        gui_drawMsg(buff, length, ip, port);
+        if( status > D_EOF) {
+            length = strlen(buff);
+            gui_drawMsg(buff, length, ip, port);
+        }
     }
 }
 

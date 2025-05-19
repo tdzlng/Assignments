@@ -28,7 +28,7 @@ int ts_dataFD;
 
 /* static constant variable */
 static machine_t host = {0};
-static volatile queue_t peerMachines;
+static queue_t peerMachines;
 static char buffRecv[256];
 static int numReadThread = 0;
 static readThreadID_t tReadID[D_MAX_ACCEPT_MACHINE] = {0};
@@ -219,7 +219,6 @@ int ts_recvMsg(int socketFD, char** msg, char** ip, int* port){
 
     retStatus = D_ERROR;
 
-
     memset(buffRecv, 0, sizeof(buffRecv)); 
     /* this function will block until it read from another peer or conection from peer terminate */
     retStatus = read(socketFD, buffRecv, sizeof(buffRecv));
@@ -279,6 +278,7 @@ int ts_removePeerSocket(int id){
         ret = D_OK;
         s_destroyThread(id);
         queue_deletePeerSocket(&peerMachines, socketFD);
+        shutdown(socketFD, SHUT_WR);      // send EOF to read socket
         close(socketFD);
     }
     pthread_mutex_unlock(&lockContainer);

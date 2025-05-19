@@ -14,7 +14,7 @@ void gui_drawMsg(char* buff, int length, char* ip, int port){
     }
 
     buff[length] = 0;
- 
+    
     printf("Message received from %s\n", ip);
     printf("Sender's Port: %d\n", port);
     printf("Message: %s\n\n", buff);
