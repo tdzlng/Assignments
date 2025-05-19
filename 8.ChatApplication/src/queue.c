@@ -118,32 +118,31 @@ int queue_getSocketFd(queue_t* container, int id){
     return ret;
 }
 
-/* TODO num will be value out put not input*/
-int queue_getArrSocketFd(queue_t* container, int* arr, int num){
-    int i=0;
+int queue_checkExistAddr(queue_t* container, char* ip, int port){
+    int flag;
     int isQueueEmpty;
     node_t* tmp = NULL;
-    int ret;            /* if suceesfull return the number of socketFD else return -1 */
 
-    ret = 0;
+    flag = D_OFF;
+
     isQueueEmpty = s_checkEmptyQueue(container);
     if( isQueueEmpty ) {
-        ret = D_ERROR;
+
     } else {
         tmp = container->tail;
-        while ((num > 0) && (NULL != tmp)) { 
-            arr[i] = tmp->guest.socketFd;
 
-            /* Update value */
-            tmp = tmp->next;
-            --num;
-            ++i;
+        while((NULL != tmp) && (flag == D_OFF)){
+            /* Search list by socket */
+            if ((strcmp(tmp->guest.ip,ip) == 0) &&
+                (tmp->guest.port == port) ) {
+                flag = D_ON;
+            } else {
+                tmp = tmp->next;
+            }
         }
-
-        ret = i;
     }
 
-    return ret;
+    return flag;
 }
 
 int queue_deletePeerSocket(queue_t* container, int socket){

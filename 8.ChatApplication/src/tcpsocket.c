@@ -19,20 +19,23 @@ typedef struct {
     int fd;
 } readThreadID_t;
 
-static int s_createThreadRead(int socketFd);
-static void s_destroyThread(int socketFd);
 static int s_createTCPIpv4Socket(void);
 static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port);
+static int s_checkHostAddress(char* ip, int port);
+static int s_createThreadRead(int socketFd);
+static void s_destroyThread(int socketFd);
+
 
 int ts_dataFD;
 
-/* static constant variable */
+/* static variable */
 static machine_t host = {0};
 static queue_t peerMachines;
 static char buffRecv[256];
 static int numReadThread = 0;
 static readThreadID_t tReadID[D_MAX_ACCEPT_MACHINE] = {0};
-static cbFunc_t s_ctrlRead = NULL;
+static cbFuncV_t s_ctrlRead = NULL;
+static cbFuncCInt_t s_ctrlNotify[2] = {NULL};
 static pthread_mutex_t lockContainer;
 static pthread_mutex_t lockReadID;
 
@@ -52,8 +55,16 @@ static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port)
     }
 }
 
-void ts_initCb(cbFunc_t ptr){
+void ts_initCbRead(cbFuncV_t ptr){
     s_ctrlRead = ptr;
+}
+
+void ts_initCbConnect(cbFuncCInt_t ptr){
+    s_ctrlNotify[E_CB_TS_CONNECT] = ptr;
+}
+
+void ts_initCbSetAddr(cbFuncCInt_t ptr){
+    s_ctrlNotify[E_CB_TS_SET_ADDR] = ptr;
 }
 
 void ts_initHost(int port){
@@ -98,15 +109,16 @@ void ts_acceptClient(){
     machine_t client;
     char peerIP[INET_ADDRSTRLEN];
     socklen_t length;
+    int flag;
 
     length = sizeof(struct sockaddr_in);
     
     while (1){
+        flag = D_OFF;
         client.fd = accept(host.fd, (struct sockaddr*)(&client.sa), &length);
 
         pthread_mutex_lock(&lockReadID);
         if(D_ERROR == client.fd) {
-            /* TODO: xu ly ko hop le */
             M_HANDLE_ERROR("Error accept()");
 
         } else if (numReadThread <= D_MAX_ACCEPT_MACHINE) {
@@ -117,16 +129,21 @@ void ts_acceptClient(){
             queue_enqueue(&peerMachines, client.fd, ntohs(client.sa.sin_port), peerIP);
             pthread_mutex_unlock(&lockContainer);
 
-            /* create thread for each peer connection to read */
-            s_createThreadRead(client.fd);
-        
-            /* TODO notify a peer try connection to host */
+            /* set flag ON when a connection is established */
+            flag = D_ON;
 
+            /* Create thread for each peer connection to read */
+            s_createThreadRead(client.fd);
         } else {
             /* maximum the number of connecting peer */
             close(client.fd);
         }
         pthread_mutex_unlock(&lockReadID);
+
+        if(flag){
+            /* callback to notify a connection is established here */
+            s_ctrlNotify[E_CB_TS_CONNECT](peerIP, ntohs(client.sa.sin_port));
+        }
     }
 }
 
@@ -157,38 +174,78 @@ static int s_createThreadRead(int socketFd){
         }
     }
 
-
     return checkValidThread;
 }
 
+static int s_checkHostAddress(char* ip, int port){
+    int ret;
+    char hostIP[INET_ADDRSTRLEN];
+    int hostPort;
+
+    inet_ntop(AF_INET, &(host.sa.sin_addr), hostIP, INET_ADDRSTRLEN);
+    hostPort = ntohs(host.sa.sin_port);
+
+    if  ((strcmp(hostIP, ip) == 0) && 
+        (hostPort == port)){
+        ret = D_ON;
+    } else {
+        ret = D_OFF;
+    }
+
+    return ret;
+}
 
 int ts_connectPeer(char* ip, int port){
-    int retStatus;
     machine_t peer;
+    int status;
+    int checkExist;
+    int checkSelfConnected;
+    int ret;
 
-    peer.fd = s_createTCPIpv4Socket();
-    s_createIPv4Address(&peer.sa, ip, port);
+    ret = E_ERROR_TS_NONE;
+    status = D_ERROR;
 
-    retStatus = connect(peer.fd, (struct sockaddr*)(&peer.sa), sizeof (struct sockaddr_in));
+    checkSelfConnected = s_checkHostAddress(ip, port);
+
+    pthread_mutex_lock(&lockContainer);
+    checkExist = queue_checkExistAddr(&peerMachines, ip, port);
+    pthread_mutex_unlock(&lockContainer);
+
+    if(checkExist == D_ON) {
+        ret = E_ERROR_TS_DUPLICATE_CONECTION;
+        
+    } else if (checkSelfConnected == D_ON){
+        ret = E_ERROR_TS_SELF_CONNECT;
+
+    } else {
+        peer.fd = s_createTCPIpv4Socket();
+        s_createIPv4Address(&peer.sa, ip, port);
+
+        status = connect(peer.fd, (struct sockaddr*)(&peer.sa), sizeof (struct sockaddr_in));
+    }
+
     pthread_mutex_lock(&lockReadID);
-    if(D_ERROR == retStatus) {
-        /* TODO xu loi connect */
-
+    if (D_ERROR == status) {
+        if(E_ERROR_TS_NONE == ret){
+            ret = E_ERROR_TS_INVALID_IP;
+        }
     } else if (numReadThread <= D_MAX_ACCEPT_MACHINE) {
-        /* TODO: thong bao write connect den peer*/
+        /* Add peer to queue */
         pthread_mutex_lock(&lockContainer);
         queue_enqueue(&peerMachines, peer.fd, port, ip);
         pthread_mutex_unlock(&lockContainer);
+        ret = E_ERROR_TS_NONE;
 
-        /* create thread for each peer connection to read */
+        /* Create thread for each peer connection to read */
         s_createThreadRead(peer.fd);
-        
     } else {
+        /* reach max connected machines */
         close(peer.fd);
+        ret = E_ERROR_TS_MAX_CONNECTION;
     }
     pthread_mutex_unlock(&lockReadID);
 
-    return retStatus;
+    return ret;
 }
 
 int ts_sendMsg(char* msg, int id){
@@ -197,46 +254,40 @@ int ts_sendMsg(char* msg, int id){
 
     retStatus = D_ERROR;
 
-    /* TODO: xu ly check dieu kien ip hop le */
-    if(1){
-        pthread_mutex_lock(&lockContainer);
-        peerSocketFD = queue_getSocketFd(&peerMachines, id);
-        pthread_mutex_unlock(&lockContainer);
-        if(D_ERROR != peerSocketFD){
-            retStatus = write(peerSocketFD, msg, sizeof(msg));
-        } else {
-            //
-        }
-    } else {
-        /* TODO: xu ly ip ko hop le */
-    }
+    pthread_mutex_lock(&lockContainer);
+    peerSocketFD = queue_getSocketFd(&peerMachines, id);
+    pthread_mutex_unlock(&lockContainer);
+
+    if(D_ERROR != peerSocketFD){
+        retStatus = write(peerSocketFD, msg, sizeof(msg));
+    } 
 
     return retStatus;
 }
 
 int ts_recvMsg(int socketFD, char** msg, char** ip, int* port){
     int retStatus;
+    char* pIP;
+    char IP[INET_ADDRSTRLEN];
 
     retStatus = D_ERROR;
-
+    
     memset(buffRecv, 0, sizeof(buffRecv)); 
     /* this function will block until it read from another peer or conection from peer terminate */
     retStatus = read(socketFD, buffRecv, sizeof(buffRecv));
     switch (retStatus){
-        case D_ERROR:
-        /* TODO: xu ly read error */
-        break;
-
         case D_EOF:
         /* delete peer socket if conection is terminate */ 
             s_destroyThread(socketFD);
             pthread_mutex_lock(&lockContainer);
             queue_deletePeerSocket(&peerMachines, socketFD);
             pthread_mutex_unlock(&lockContainer);
+
+        /* falling through */
+        case D_ERROR:
         break;
 
         default:
-        /* TODO: read successfully from peer and send data to GUI */
             pthread_mutex_lock(&lockContainer);
             queue_getAddr(&peerMachines, socketFD, ip, port);
             pthread_mutex_unlock(&lockContainer);
@@ -267,6 +318,9 @@ int ts_getDataPeer(char (*ip)[16], int *port){
 int ts_removePeerSocket(int id){
     int socketFD;
     int ret;
+    char* pIP;
+    char IP[INET_ADDRSTRLEN];
+    int port;
 
     pthread_mutex_lock(&lockContainer);
     socketFD = queue_getSocketFd(&peerMachines, id);
@@ -277,11 +331,20 @@ int ts_removePeerSocket(int id){
         /* socket found and destroy peer's address */
         ret = D_OK;
         s_destroyThread(id);
+        queue_getAddr(&peerMachines, socketFD, &pIP, &port);
+        memcpy(IP, pIP, INET_ADDRSTRLEN);
+
         queue_deletePeerSocket(&peerMachines, socketFD);
-        shutdown(socketFD, SHUT_WR);      // send EOF to read socket
+
+        /* send EOF to other socket */
+        shutdown(socketFD, SHUT_WR);
         close(socketFD);
     }
     pthread_mutex_unlock(&lockContainer);
+
+    if(ret = D_OK) {
+        s_ctrlNotify[E_CB_TS_SET_ADDR](IP, port);
+    }
 
     return ret;
 }

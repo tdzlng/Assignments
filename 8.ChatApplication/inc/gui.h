@@ -1,19 +1,23 @@
 #define D_MAX_LENGTH        (100)
-#define D_MAX_CONNECTION    (10)
+#define D_MAX_CONNECTION    (5)
 
 typedef enum {
-    E_ERROR_GUI_INVALID_CONECTION = 0,
+    E_ERROR_GUI_NONE = 0,
+    E_ERROR_GUI_INVALID_CONECTION,
+    E_ERROR_GUI_INVALID_ID,
     E_ERROR_GUI_INVALID_IP,
     E_ERROR_GUI_SELF_CONNECT,
     E_ERROR_GUI_DUPLICATE_CONECTION,
-    E_ERROR_GUI_NONE
+    E_ERROR_GUI_INVALID_COMMAND
 } E_ERROR_GUI_CODE;
 
 typedef enum {
-    E_NOTIFY_ERROR = 0,
-    E_NOTIFY_EXIT,
-    E_NOTIFY_CONNECT_SUCC
-} E_NOTIFY_MESSAGE;
+    E_NOTIFY_GUI_NONE = 0,
+    E_NOTIFY_GUI_EXIT,
+    E_NOTIFY_GUI_CONNECT_SUCCESS,
+    E_NOTIFY_GUI_PEER_DISCONNECTED,
+    E_NOTIFY_GUI_SEND_SUCCESS
+} E_NOTIFY_GUI_MESSAGE;
 
 typedef struct {
     int port;
@@ -27,4 +31,5 @@ void gui_showIP(char* ip);
 void gui_showPort(int port);
 void gui_list();
 void gui_error(E_ERROR_GUI_CODE errorCode);
-void gui_notify(E_NOTIFY_MESSAGE type);
+void gui_notify(E_NOTIFY_GUI_MESSAGE type);
+void gui_setAddrNotify(char* ip, int port);

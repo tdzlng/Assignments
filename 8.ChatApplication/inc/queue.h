@@ -21,7 +21,7 @@ typedef struct {
 void queue_initQueue(queue_t* container);
 void queue_enqueue(queue_t* container, int socketFd, uint16_t port, char* ip);
 int queue_getSocketFd(queue_t* container, int id);
-int queue_getArrSocketFd(queue_t* container, int* arr, int num);
+int queue_checkExistAddr(queue_t* container, char* ip, int port);
 int queue_deletePeerSocket(queue_t* container, int socket);
 int queue_getAddr(queue_t* container, int fd, char** ip, int *port);
 void queue_destroy(queue_t* container);

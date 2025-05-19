@@ -11,15 +11,10 @@ INC_DIR := $(CUR_DIR)/inc
 SRC_DIR := $(CUR_DIR)/src
 OBJ_DIR := $(CUR_DIR)/obj
 BIN_DIR := $(CUR_DIR)/bin
-LIB_DIR := $(CUR_DIR)/lib
-LIB_STATIC_DIR := $(LIB_DIR)/static
 
 # Source static library
-SRC_STATIC_FILES := log.c queue.c control.c tcpsocket.c gui.c
+SRC_STATIC_FILES := queue.c control.c tcpsocket.c gui.c
 SRC_STATIC_PATH := $(addprefix $(SRC_DIR)/, $(SRC_STATIC_FILES))
-
-#Linking library
-LIB := $(basename $(SRC_STATIC_FILES))
 
 # Object file
 OBJ_STATIC_FILES := $(SRC_STATIC_FILES:.c=.o)
@@ -40,4 +35,4 @@ clean:
 all: main.o $(OBJ_STATIC_PATH) 
 	gcc -o $(BIN_DIR)/$(TARGET)  $(OBJ_DIR)/$< $(OBJ_STATIC_PATH) $(CXXFLAGS)
 clean:
-	rm -rf $(BIN_DIR)/main $(OBJ_DIR)/*.o $(LIB_STATIC_DIR)/*.a
+	rm -rf $(BIN_DIR)/main $(OBJ_DIR)/*.o

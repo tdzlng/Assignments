@@ -21,7 +21,6 @@ static void s_exit();
 
 #define D_NUM_CMD (8)
 
-static E_STATE_PROCESS state = E_STATE_NONE;
 
 typedef struct {
     char command[10];
@@ -29,10 +28,12 @@ typedef struct {
     char arg2[100];
 } parseCMD_t;
 
-
 typedef void (*operation_t)(void);
 
 
+static E_STATE_PROCESS state = E_STATE_NONE;
+static E_NOTIFY_GUI_MESSAGE flagNotify = E_NOTIFY_GUI_NONE;
+static E_ERROR_GUI_CODE flagError = E_ERROR_GUI_NONE;
 static parseCMD_t parser = {0};
 
 
@@ -62,17 +63,31 @@ E_STATE_PROCESS* ctrl_getState(){
     return &state;
 }
 
+void ctrl_initControl(int port){
+    /* init host socket */
+    ts_initHost(port);
+
+    /* register callback */
+    ts_initCbRead(ctrl_read);
+    ts_initCbConnect(ctrl_notifyPeerConnected);
+    ts_initCbSetAddr(ctrl_notifySetAddr);
+}
+
+void ctrl_deinitControl(){
+    ts_deinitHost();
+}
+
 void* ctrl_read(void* arg){
+    int sockFD;
     char* buff = NULL;
     int length; 
     char* ip = NULL;
     int port;
     int status = 1;
-    int sockFD;
 
     sockFD = ts_dataFD;
     ts_dataFD = 0;
-
+    
     while(status > D_EOF){
         status = ts_recvMsg(sockFD, &buff, &ip, &port);
         if( status > D_EOF) {
@@ -80,12 +95,13 @@ void* ctrl_read(void* arg){
             gui_drawMsg(buff, length, ip, port);
         }
     }
+
 }
-
-
 
 void ctrl_bfTsk(){
     memset((char*)&parser,0, sizeof(parser));
+    flagNotify = E_NOTIFY_GUI_NONE;
+    flagError = E_ERROR_GUI_NONE;
 }
 
 void ctrl_afTsk(){
@@ -96,40 +112,36 @@ void ctrl_waitClientAccept(){
     ts_acceptClient();
 }
 
-void ctrl_control(){
-    int flag = -1;
-
-    for(int i=0; i<D_NUM_CMD; ++i){
-        if(strcmp(cmd[i], parser.command) == 0){
-            flag = i;
-            i=D_NUM_CMD; // break loop
-        }
-    }
-
-    if ((flag>-1) &&
-        (flag<D_NUM_CMD)){
-        task[flag]();
-    } else {
-        /* TODO invald cmd*/
-    }
-}
-
 void ctrl_getInput(){
     char buff[256] = {0};
-    char* status = NULL;
     
     fflush(stdin);
-    status = fgets(buff, sizeof(buff), stdin);
+    fgets(buff, sizeof(buff), stdin);
     sscanf(buff,"%s %s %s", parser.command, parser.arg1, parser.arg2);
 }
 
-void ctrl_initHost(int port){
-    ts_initHost(port);
-    ts_initCb(ctrl_read);
+void ctrl_control(){
+    int cmdID = -1;
+
+    for(int i=0; i<D_NUM_CMD; ++i){
+        if(strcmp(cmd[i], parser.command) == 0){
+            cmdID = i;
+            i = D_NUM_CMD; // break loop
+        }
+    }
+
+    if ((cmdID > -1) &&
+        (cmdID < D_NUM_CMD)){
+        /* if flag between command 0~7 process main task */
+        task[cmdID]();
+    } else {
+        flagError = E_ERROR_GUI_INVALID_COMMAND;
+    }
 }
 
-void ctrl_deinitHost(){
-    ts_deinitHost();
+void ctrl_notifyWarning(){
+    gui_notify(flagNotify);
+    gui_error(flagError);
 }
 
 static void s_help(){
@@ -155,19 +167,38 @@ static void s_connect(){
     char* ip = parser.arg1;
     int status;
 
-    /** TODO them dieu kien check valid ip */
-    if(1){
-        status = ts_connectPeer(ip, port);
-    } else {
-        status = -1;
-    }
+    status = ts_connectPeer(ip, port);
+    
+    switch (status){
+    case E_ERROR_TS_DUPLICATE_CONECTION:
+        flagError = E_ERROR_GUI_DUPLICATE_CONECTION;
+        break;
 
-    /* Notify Success */
-    if(status == 0){
-        gui_notify(E_NOTIFY_CONNECT_SUCC);
-    } else {
-        gui_notify(E_NOTIFY_ERROR);
+    case E_ERROR_TS_INVALID_IP:
+        flagError = E_ERROR_GUI_INVALID_IP;
+        break;
+    
+    case E_ERROR_TS_SELF_CONNECT:
+        flagError = E_ERROR_GUI_SELF_CONNECT;
+        break;
+
+    case E_ERROR_TS_NONE:
+        gui_setAddrNotify(ip, port);
+        flagNotify = E_NOTIFY_GUI_CONNECT_SUCCESS;
+        break;
+
+    default:
+        break;
     }
+}
+
+void ctrl_notifyPeerConnected(char* ip, int port){
+    gui_setAddrNotify(ip, port);
+    gui_notify(E_NOTIFY_GUI_CONNECT_SUCCESS);
+}
+
+void ctrl_notifySetAddr(char* ip, int port){
+    gui_setAddrNotify(ip, port);
 }
 
 static void s_list(){
@@ -178,10 +209,16 @@ static void s_terminate(){
     int status;
     int id = atoi(parser.arg1);
 
-    if(1){
-        status = ts_removePeerSocket(id);
-    } else {
+    if(id > 0){
+        status = ts_removePeerSocket(id-1);
 
+        if(D_OK == status){
+            flagNotify = E_NOTIFY_GUI_PEER_DISCONNECTED;
+        } else {
+            flagError = E_ERROR_GUI_INVALID_IP;
+        }
+    } else {
+        flagError = E_ERROR_GUI_INVALID_ID;
     }
 }
 
@@ -191,16 +228,22 @@ static void s_send(){
     int status;
 
     id = atoi(parser.arg1);
-    if(1){
+    if(id > 0){
         msg = parser.arg2;
-        status = ts_sendMsg(msg, id);
-    } else {
+        status = ts_sendMsg(msg, id-1);
 
+        if( status > 0){
+            flagNotify = E_NOTIFY_GUI_SEND_SUCCESS;
+        } else {
+            flagError = E_ERROR_GUI_INVALID_ID;
+        }
+    } else {
+        flagError = E_ERROR_GUI_INVALID_ID;
     }
 }
 
 static void s_exit(){
     ts_destroyAllPeerMachine();
-    gui_notify(E_NOTIFY_EXIT);
+    gui_notify(E_NOTIFY_GUI_EXIT);
     state = E_STATE_EXIT;
 }
