@@ -1,6 +1,7 @@
-#define D_MAX_LENGTH        (100)
-#define D_MAX_CONNECTION    (5)
+#ifndef GUI_H
+#define GUI_H
 
+/* DEFINE CONSTANTS */
 typedef enum {
     E_ERROR_GUI_NONE = 0,
     E_ERROR_GUI_INVALID_CONECTION,
@@ -19,12 +20,14 @@ typedef enum {
     E_NOTIFY_GUI_SEND_SUCCESS
 } E_NOTIFY_GUI_MESSAGE;
 
+/* PUBLIC TYPEDEF */
 typedef struct {
     int port;
     int valid;
     char ip[16];
 } listConnection_t;
 
+/* PUBLIC FUNCTION PROTOTYPE */
 void gui_drawMsg(char* buff, int length, char* ip, int port);
 void gui_drawCMD();
 void gui_showIP(char* ip);
@@ -33,3 +36,5 @@ void gui_list();
 void gui_error(E_ERROR_GUI_CODE errorCode);
 void gui_notify(E_NOTIFY_GUI_MESSAGE type);
 void gui_setAddrNotify(char* ip, int port);
+
+#endif

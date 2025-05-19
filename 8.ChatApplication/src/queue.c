@@ -4,20 +4,14 @@
 #include <string.h>
 #include <unistd.h>
 #include "queue.h"
-#include "log.h"
+#include "common.h"
 
-
-
+/* STATIC FUNCTION PROTOTYPE */
 static int s_checkEmptyQueue(queue_t* container);
 static node_t* s_createNode(int socketFd, uint16_t port, char* ip);
 static int s_getNode(queue_t* container, int id, node_t* node);
 
-
-void queue_initQueue(queue_t* container){
-    container->head = NULL;
-    container->tail = NULL;
-}
-
+/* STATIC FUNCTION */
 static node_t* s_createNode(int socketFd, uint16_t port, char* ip) {
     node_t* node = (node_t*)malloc(sizeof(node_t));
 
@@ -40,6 +34,44 @@ static int s_checkEmptyQueue(queue_t* container){
     }
 
     return ret;
+}
+
+static int s_getNode(queue_t* container, int id, node_t* node){
+    node_t* tmp = NULL;
+    int isQueueEmpty;
+    int flag;           
+
+    /* if find the right ip flag = 1 */
+    flag = D_OFF;
+    tmp = container->tail;
+
+    isQueueEmpty = s_checkEmptyQueue(container);
+    if(isQueueEmpty) {
+
+    } else if (id >= 0) {
+        /* id >= 0 search by id */
+        while((NULL != tmp) && (flag == 0)){
+            if (id > 0){
+                --id;
+                tmp = tmp->next;
+            } else {
+                flag = D_ON;   // find right socket and break loop
+            }
+        }        
+    }
+
+    /* return value */
+    if(flag == D_ON){
+        *node = *tmp;
+    }
+    
+    return flag;
+}
+
+/* PUBLIC FUNCTION */
+void queue_initQueue(queue_t* container){
+    container->head = NULL;
+    container->tail = NULL;
 }
 
 void queue_enqueue(queue_t* container, int socketFd, uint16_t port, char* ip) {
@@ -67,39 +99,6 @@ void queue_destroy(queue_t* container) {
         container->tail = tmp;
     }
     
-}
-
-static int s_getNode(queue_t* container, int id, node_t* node){
-    node_t* tmp = NULL;
-    int isQueueEmpty;
-    int flag;           /* if find the right ip flag = 1 */
-
-    flag = D_OFF;
-    tmp = container->tail;
-
-    isQueueEmpty = s_checkEmptyQueue(container);
-    if(isQueueEmpty) {
-
-    } else if (id >= 0) {
-        /* id >= 0 search by id */
-        while((NULL != tmp) && (flag == 0)){
-            if (id > 0){
-                --id;
-                tmp = tmp->next;
-            } else {
-                flag = D_ON;   // find right socket and break loop
-            }
-        }        
-    }
-
-    /* return value */
-    if(flag == D_ON){
-        *node = *tmp;
-    } else {
-
-    }
-    
-    return flag;
 }
 
 int queue_getSocketFd(queue_t* container, int id){
@@ -149,8 +148,9 @@ int queue_deletePeerSocket(queue_t* container, int socket){
     node_t* deleteNode = NULL;
     node_t* preNode = NULL;
     int isQueueEmpty;
-    int flag;                       /* flag = -1 empty queue, 0 not found, 1 found */
+    int flag;                       
 
+    /* flag = -1 empty queue, 0 not found, 1 found */
     flag = 0;
 
     isQueueEmpty = s_checkEmptyQueue(container);
@@ -200,8 +200,9 @@ int queue_deletePeerSocket(queue_t* container, int socket){
 int queue_getAddr(queue_t* container, int fd, char** ip, int *port){
     node_t* tmp = NULL;
     int isQueueEmpty;
-    int flag;           /* if find the right socket, flag = 1 */
+    int flag;           
 
+    /* if find the right socket, flag = 1 */
     flag = 0;
     isQueueEmpty = s_checkEmptyQueue(container);
     if(isQueueEmpty) {
@@ -232,8 +233,9 @@ int queue_getDataPeer(queue_t* container, char (*ip)[16], int* port){
     int i=0;
     int isQueueEmpty;
     node_t* tmp = NULL;
-    int ret;            /* if suceesfull return the number of socketFD else return -1 */
+    int ret;            
 
+    /* if suceesfull return the number of socketFD else return -1 */
     ret = 0;
     isQueueEmpty = s_checkEmptyQueue(container);
     if( isQueueEmpty ) {

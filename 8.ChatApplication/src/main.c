@@ -27,7 +27,6 @@ void main(int argc, char* argv[]){
 
             pthread_create(&threadAcceptID, NULL, (void * (*)(void *))ctrl_waitClientAccept, NULL);
 
-            
             *state = E_STATE_DISPLAY;
             while ((E_STATE_NONE != *state) &&
                     (E_STATE_EXIT != *state)) {

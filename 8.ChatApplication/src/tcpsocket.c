@@ -1,13 +1,17 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <stdlib.h>
-#include <log.h>
+#include <common.h>
 #include <queue.h>
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
 #include "tcpsocket.h"
 
+/* DEFINE CONTSTANTS */
+#define D_MAX_ACCEPT_MACHINE   (5U)
+
+/* STATIC TYPEDEF */
 typedef struct {
     int fd;
     struct sockaddr_in sa;
@@ -19,16 +23,17 @@ typedef struct {
     int fd;
 } readThreadID_t;
 
+/* STATIC FUNCTION PROTOTYPE */
 static int s_createTCPIpv4Socket(void);
 static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port);
 static int s_checkHostAddress(char* ip, int port);
 static int s_createThreadRead(int socketFd);
 static void s_destroyThread(int socketFd);
 
-
+/* GLOBAL VARIABLES */
 int ts_dataFD;
 
-/* static variable */
+/* STATIC VARIABLES */
 static machine_t host = {0};
 static queue_t peerMachines;
 static char buffRecv[256];
@@ -39,7 +44,7 @@ static cbFuncCInt_t s_ctrlNotify[2] = {NULL};
 static pthread_mutex_t lockContainer;
 static pthread_mutex_t lockReadID;
 
-
+/* STATIC FUNCTION */
 static int s_createTCPIpv4Socket(void){ 
     return socket(AF_INET, SOCK_STREAM, 0);
 }
@@ -55,6 +60,68 @@ static void s_createIPv4Address(struct sockaddr_in* address, char* ip, int port)
     }
 }
 
+static void s_destroyThread(int socketFd){
+    pthread_mutex_lock(&lockReadID);
+    for(int i=0;i<D_MAX_ACCEPT_MACHINE;++i){
+        if(tReadID[i].fd == socketFd){
+            pthread_cancel(tReadID[i].ID);
+            tReadID[i].isUsed = D_OFF;
+            --numReadThread;
+            i = D_MAX_ACCEPT_MACHINE; // break loop
+        }
+    }
+    pthread_mutex_unlock(&lockReadID);
+}
+
+static int s_createThreadRead(int socketFd){
+    int checkValidThread;
+    int i;
+
+    i = 0;
+    checkValidThread = D_OFF;
+    while ((D_OFF == checkValidThread) && 
+            (i < D_MAX_ACCEPT_MACHINE)){
+        if (D_OFF == tReadID[i].isUsed){
+            /*Update value*/
+            ++numReadThread;
+            checkValidThread = D_ON; // break loop
+            tReadID[i].isUsed = D_ON;
+            tReadID[i].fd = socketFd;
+
+            /* ts_dataFD is input for cb function s_ctrlRead */
+            ts_dataFD = socketFd;
+
+            /* assign a thread to read msg from peer */
+            pthread_create(&(tReadID[i].ID), NULL, s_ctrlRead, NULL);
+
+        } else {
+            /* check the next thread is occupy or not */
+            ++i;
+        }
+    }
+
+    return checkValidThread;
+}
+
+static int s_checkHostAddress(char* ip, int port){
+    int ret;
+    char hostIP[INET_ADDRSTRLEN];
+    int hostPort;
+
+    inet_ntop(AF_INET, &(host.sa.sin_addr), hostIP, INET_ADDRSTRLEN);
+    hostPort = ntohs(host.sa.sin_port);
+
+    if  ((strcmp(hostIP, ip) == 0) && 
+        (hostPort == port)){
+        ret = D_ON;
+    } else {
+        ret = D_OFF;
+    }
+
+    return ret;
+}
+
+/* PUBLIC FUNCTION */
 void ts_initCbRead(cbFuncV_t ptr){
     s_ctrlRead = ptr;
 }
@@ -145,54 +212,6 @@ void ts_acceptClient(){
             s_ctrlNotify[E_CB_TS_CONNECT](peerIP, ntohs(client.sa.sin_port));
         }
     }
-}
-
-static int s_createThreadRead(int socketFd){
-    int checkValidThread;
-    int i;
-
-    i = 0;
-    checkValidThread = D_OFF;
-    while ((D_OFF == checkValidThread) && 
-            (i < D_MAX_ACCEPT_MACHINE)){
-        if (D_OFF == tReadID[i].isUsed){
-            /*Update value*/
-            ++numReadThread;
-            checkValidThread = D_ON; // break loop
-            tReadID[i].isUsed = D_ON;
-            tReadID[i].fd = socketFd;
-
-            /* ts_dataFD is input for cb function s_ctrlRead */
-            ts_dataFD = socketFd;
-
-            /* assign a thread to read msg from peer */
-            pthread_create(&(tReadID[i].ID), NULL, s_ctrlRead, NULL);
-
-        } else {
-            /* check the next thread is occupy or not */
-            ++i;
-        }
-    }
-
-    return checkValidThread;
-}
-
-static int s_checkHostAddress(char* ip, int port){
-    int ret;
-    char hostIP[INET_ADDRSTRLEN];
-    int hostPort;
-
-    inet_ntop(AF_INET, &(host.sa.sin_addr), hostIP, INET_ADDRSTRLEN);
-    hostPort = ntohs(host.sa.sin_port);
-
-    if  ((strcmp(hostIP, ip) == 0) && 
-        (hostPort == port)){
-        ret = D_ON;
-    } else {
-        ret = D_OFF;
-    }
-
-    return ret;
 }
 
 int ts_connectPeer(char* ip, int port){
@@ -347,17 +366,4 @@ int ts_removePeerSocket(int id){
     }
 
     return ret;
-}
-
-static void s_destroyThread(int socketFd){
-    pthread_mutex_lock(&lockReadID);
-    for(int i=0;i<D_MAX_ACCEPT_MACHINE;++i){
-        if(tReadID[i].fd == socketFd){
-            pthread_cancel(tReadID[i].ID);
-            tReadID[i].isUsed = D_OFF;
-            --numReadThread;
-            i = D_MAX_ACCEPT_MACHINE; // break loop
-        }
-    }
-    pthread_mutex_unlock(&lockReadID);
 }

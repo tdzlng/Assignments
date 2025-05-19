@@ -3,18 +3,22 @@
 #include "gui.h"
 #include "tcpsocket.h"
 
+/* DEFINE CONSTANTS */
+#define D_MAX_LENGTH        (100)
+#define D_MAX_CONNECTION    (5)
 
+/* STATIC VARIABLES */
 static const char listCMD[] = "1. help\n2. myip\n3. myport\n4. connect <destination> <port no>\n5. list\n6. terminate <connection id.>\n7. send <connection id.> <message>\n\n";
 static char peerIP[D_MAX_CONNECTION][16];
 static int peerPort[D_MAX_CONNECTION];
 
+/* PUBLIC FUNCTION */
 void gui_drawMsg(char* buff, int length, char* ip, int port){
     if(length > D_MAX_LENGTH){
         length = D_MAX_LENGTH;
     }
-
     buff[length] = 0;
-    
+
     printf("Message received from %s\n", ip);
     printf("Sender's Port: %d\n", port);
     printf("Message: %s\n\n", buff);

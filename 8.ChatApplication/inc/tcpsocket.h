@@ -1,5 +1,7 @@
-#define D_MAX_ACCEPT_MACHINE   (5U)
+#ifndef TCPSOCKET_H
+#define TCPSOCKET_H
 
+/* DEFINE CONSTANTS */
 typedef enum {
     E_ERROR_TS_INVALID_CONECTION = 0,
     E_ERROR_TS_INVALID_IP,
@@ -15,9 +17,11 @@ typedef enum {
     E_CB_TS_MAX
 } E_CB_TS_CODE;
 
+/* PUBLIC TYPEDEF */
 typedef void* (*cbFuncV_t)(void*);
 typedef void (*cbFuncCInt_t)(char*, int);
 
+/* PUBLIC FUNCTION PROTOTYPE */
 void ts_initCbRead(cbFuncV_t ptr);
 void ts_initCbConnect(cbFuncCInt_t ptr);
 void ts_initCbSetAddr(cbFuncCInt_t ptr);
@@ -33,3 +37,5 @@ int ts_sendMsg(char* msg, int id);
 int ts_recvMsg(int socketFD, char** msg, char** ip, int* port);
 void ts_destroyAllPeerMachine();
 int ts_removePeerSocket(int id);
+
+#endif
