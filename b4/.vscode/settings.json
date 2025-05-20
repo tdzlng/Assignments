@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "pthread.h": "c",
-        "unistd.h": "c",
-        "pthreadtypes.h": "c",
-        "setjmp.h": "c",
-        "endian.h": "c"
-    }
-}
